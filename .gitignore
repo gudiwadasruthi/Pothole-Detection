@@ -1,0 +1,63 @@
+# dependencies
+node_modules/
+frontend/node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# production builds
+dist/
+frontend/dist/
+
+# local env files
+.env
+.env.*
+
+# Netlify
+.netlify/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# editor/OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docker
+.dockerignore
+
+# Database (local development)
+*.db
+*.sqlite
+*.sqlite3
+
+# Model files (if you don't want to commit best.pt)
+# Uncomment if best.pt is large and you deploy it separately
+# best.pt
+# models/*.pt
+
+# Output/temp directories
+output/
+input/
+temp/
+.tmp/
+
+# Coverage/test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/

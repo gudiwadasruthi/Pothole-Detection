@@ -1,0 +1,10 @@
+ultralytics
+numpy
+Pillow
+opencv-python
+matplotlib
+fastapi
+uvicorn
+timm
+einops
+python-multipart

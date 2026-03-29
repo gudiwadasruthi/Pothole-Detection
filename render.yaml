@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: smartroad-backend
+    runtime: docker
+    repo: https://github.com/YOUR_USERNAME/SmartRoad
+    branch: main
+    rootDir: pothole 1
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_PATH
+        value: /data/potholes.db
+      - key: PORT
+        value: 8000
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    healthCheckPath: /health
+    autoDeploy: true
