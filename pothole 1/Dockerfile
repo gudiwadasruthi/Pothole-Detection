@@ -2,7 +2,8 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    TORCH_HOME=/app/.cache/torch
+    TORCH_HOME=/app/.cache/torch \
+    HF_HOME=/app/.cache/huggingface
 
 WORKDIR /app
 
@@ -17,16 +18,22 @@ RUN pip install --no-cache-dir -r requirements/cpu.txt
 
 COPY . .
 
-# Pre-download and cache MiDaS model during build (avoids timeout on first request)
+# Pre-download and cache MiDaS model during build (REQUIRED - prevents timeout on Render)
 RUN python << 'EOF'
+import os
+import sys
+os.environ['TORCH_HOME'] = '/app/.cache/torch'
+os.environ['HF_HOME'] = '/app/.cache/huggingface'
+
 import torch
-print("Pre-caching MiDaS model...")
+print("Downloading MiDaS model...")
 try:
-    torch.hub.load('intel-isl/MiDaS', 'DPT_Large', trust_repo=True)
-    print('MiDaS cached successfully')
+    model = torch.hub.load('intel-isl/MiDaS', 'DPT_Large', trust_repo=True, skip_validation=True)
+    print('SUCCESS: MiDaS cached')
+    del model  # Free memory
 except Exception as e:
-    print(f'MiDaS cache warning: {e}')
-    print('Will download on first run (may timeout)')
+    print(f'FAILED: {e}', file=sys.stderr)
+    sys.exit(1)  # Fail build if download fails
 EOF
 
 # Verify best.pt exists (fail build if missing)
