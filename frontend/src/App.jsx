@@ -569,7 +569,7 @@ function AIValidation({ onResult }) {
       const formData = new FormData();
       formData.append("file", file);
       
-      const res = await fetch("http://127.0.0.1:8000/upload", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'}/upload`, {
         method: "POST",
         body: formData,
       });
@@ -1023,7 +1023,7 @@ function ReportPothole({ user, onAdd, showToast }) {
       try {
         const formData = new FormData();
         formData.append("file", form.rawFile);
-        const res = await fetch("http://127.0.0.1:8000/upload", { method: "POST", body: formData });
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'}/upload`, { method: "POST", body: formData });
         if (res.ok) {
            const payload = await res.json();
            const pts = payload.potholes;
@@ -2714,7 +2714,7 @@ function BudgetControl({ complaints, budgetConfig, onBudgetUpdate, showToast }) 
   useEffect(() => {
     const fetchRates = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/admin/rates");
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'}/admin/rates`);
         if (res.ok) {
           const data = await res.json();
           setRates(data.rates);
@@ -2729,7 +2729,7 @@ function BudgetControl({ complaints, budgetConfig, onBudgetUpdate, showToast }) 
   const updateRates = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/admin/update-rates", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'}/admin/update-rates`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
