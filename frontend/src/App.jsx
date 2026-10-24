@@ -53,11 +53,11 @@ const G = `
     --cream: #faf8f3;
 
     --tx-d: #0a0c14;
-    --tx-d2: rgba(10,12,20,0.62);
-    --tx-d3: rgba(10,12,20,0.38);
+    --tx-d2: rgba(10,12,20,0.72);
+    --tx-d3: rgba(10,12,20,0.48);
     --tx-l: #f2f0eb;
-    --tx-l2: rgba(242,240,235,0.62);
-    --tx-l3: rgba(242,240,235,0.35);
+    --tx-l2: rgba(242,240,235,0.78);
+    --tx-l3: rgba(242,240,235,0.50);
 
     --br-d: rgba(10,12,20,0.1);
     --br-d2: rgba(10,12,20,0.18);
@@ -71,7 +71,7 @@ const G = `
   }
 
   html, body, #root { height: 100%; }
-  body { font-family: var(--fb); background: var(--ink); color: var(--tx-l); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--fb); background: var(--ink); color: var(--tx-l); overflow-x: hidden; -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.55; }
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 99px; }
@@ -183,19 +183,19 @@ const G = `
   /* BADGES */
   .badge {
     display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 9px; border-radius: 99px;
-    font-size: 10.5px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 3px 10px; border-radius: 99px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.055em;
   }
-  .b-pending { background: rgba(201,168,76,0.14); color: var(--gold2); border: 1px solid rgba(201,168,76,0.25); }
-  .b-progress { background: rgba(61,90,122,0.2); color: #7aadda; border: 1px solid rgba(61,90,122,0.35); }
-  .b-done { background: rgba(74,124,89,0.18); color: #6ec98d; border: 1px solid rgba(74,124,89,0.3); }
-  .b-reject { background: rgba(192,82,42,0.15); color: #e8835c; border: 1px solid rgba(192,82,42,0.28); }
-  .b-reopen { background: rgba(92,74,138,0.2); color: #a48fd4; border: 1px solid rgba(92,74,138,0.3); }
-  .b-assigned { background: rgba(61,90,122,0.15); color: #8ab4d4; border: 1px solid rgba(61,90,122,0.25); }
-  .b-high { background: rgba(192,82,42,0.15); color: #e8835c; border: 1px solid rgba(192,82,42,0.25); }
-  .b-medium { background: rgba(201,168,76,0.14); color: var(--gold2); border: 1px solid rgba(201,168,76,0.22); }
-  .b-low { background: rgba(74,124,89,0.15); color: #6ec98d; border: 1px solid rgba(74,124,89,0.25); }
+  .b-pending { background: rgba(201,168,76,0.16); color: var(--gold2); border: 1px solid rgba(201,168,76,0.30); }
+  .b-progress { background: rgba(61,90,122,0.22); color: #8bbee8; border: 1px solid rgba(61,90,122,0.40); }
+  .b-done { background: rgba(74,124,89,0.20); color: #7ed4a0; border: 1px solid rgba(74,124,89,0.35); }
+  .b-reject { background: rgba(192,82,42,0.17); color: #ee9070; border: 1px solid rgba(192,82,42,0.32); }
+  .b-reopen { background: rgba(92,74,138,0.22); color: #b8a0e0; border: 1px solid rgba(92,74,138,0.35); }
+  .b-assigned { background: rgba(61,90,122,0.17); color: #99c0e0; border: 1px solid rgba(61,90,122,0.30); }
+  .b-high { background: rgba(192,82,42,0.17); color: #ee9070; border: 1px solid rgba(192,82,42,0.30); }
+  .b-medium { background: rgba(201,168,76,0.16); color: var(--gold2); border: 1px solid rgba(201,168,76,0.26); }
+  .b-low { background: rgba(74,124,89,0.17); color: #7ed4a0; border: 1px solid rgba(74,124,89,0.28); }
 
   /* INPUTS */
   input, textarea, select {
@@ -203,7 +203,7 @@ const G = `
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: var(--rsm);
-    color: var(--tx-l); font-family: var(--fb); font-size: 13.5px;
+    color: var(--tx-l); font-family: var(--fb); font-size: 14px;
     outline: none; transition: all 0.2s;
   }
   input:focus, textarea:focus, select:focus {
@@ -213,7 +213,7 @@ const G = `
   }
   input::placeholder, textarea::placeholder { color: var(--tx-l3); }
   select option { background: #181c2a; }
-  label { font-size: 12px; color: var(--tx-l2); font-weight: 600; display: block; margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+  label { font-size: 12.5px; color: var(--tx-l2); font-weight: 600; display: block; margin-bottom: 6px; letter-spacing: 0.035em; text-transform: uppercase; }
 
   /* DIVIDER */
   .divider { height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent); }
@@ -222,14 +222,14 @@ const G = `
   .nav-item {
     display: flex; align-items: center; gap: 10px;
     padding: 9px 12px; border-radius: 8px;
-    font-size: 13px; font-weight: 500; color: var(--tx-l3);
+    font-size: 13.5px; font-weight: 500; color: var(--tx-l2);
     cursor: pointer; transition: all 0.2s;
     border: 1px solid transparent;
   }
-  .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--tx-l2); }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: var(--tx-l); }
   .nav-item.active {
-    background: linear-gradient(135deg, rgba(201,168,76,0.14), rgba(201,168,76,0.06));
-    border-color: rgba(201,168,76,0.2);
+    background: linear-gradient(135deg, rgba(201,168,76,0.16), rgba(201,168,76,0.07));
+    border-color: rgba(201,168,76,0.22);
     color: var(--gold2);
   }
   .nav-item.active .nav-ic { color: var(--gold); }
@@ -315,27 +315,27 @@ const G = `
 
   /* TABLE */
   .table-w { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   thead th {
     text-align: left; padding: 10px 14px;
-    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--tx-l3); border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--tx-l2); border-bottom: 1px solid rgba(255,255,255,0.08);
     font-weight: 700; font-family: var(--fb);
   }
-  tbody td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
-  tbody tr:hover td { background: rgba(255,255,255,0.025); }
+  tbody td { padding: 13px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; font-size: 13.5px; }
+  tbody tr:hover td { background: rgba(255,255,255,0.03); }
   tbody tr:last-child td { border-bottom: none; }
 
   /* FILTER CHIPS */
   .chip {
-    padding: 5px 13px; border-radius: 99px; font-size: 11.5px;
+    padding: 6px 14px; border-radius: 99px; font-size: 12px;
     font-weight: 600; cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.1);
-    color: var(--tx-l3); transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--tx-l2); transition: all 0.2s;
     background: transparent; letter-spacing: 0.02em;
   }
-  .chip.on { background: rgba(201,168,76,0.14); border-color: rgba(201,168,76,0.3); color: var(--gold2); }
-  .chip:hover { border-color: rgba(255,255,255,0.2); color: var(--tx-l2); }
+  .chip.on { background: rgba(201,168,76,0.16); border-color: rgba(201,168,76,0.35); color: var(--gold2); }
+  .chip:hover { border-color: rgba(255,255,255,0.22); color: var(--tx-l); }
 
   /* TIMELINE */
   .tline { padding-left: 20px; position: relative; }
@@ -396,9 +396,9 @@ function StatCard({ icon, val, label, accent, sub }) {
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
         <div style={{ width: 38, height: 38, borderRadius: 10, background: `${accent}1a`, border: `1px solid ${accent}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{icon}</div>
       </div>
-      <div className="heading" style={{ fontSize: 28, fontWeight: 600, color: "var(--tx-l)", lineHeight: 1, marginBottom: 4 }}>{val}</div>
-      <div style={{ fontSize: 11, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>{label}</div>
-      {sub && <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 4 }}>{sub}</div>}
+      <div className="heading" style={{ fontSize: 30, fontWeight: 600, color: "var(--tx-l)", lineHeight: 1, marginBottom: 6 }}>{val}</div>
+      <div style={{ fontSize: 12, color: "var(--tx-l2)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>{label}</div>
+      {sub && <div style={{ fontSize: 13, color: "var(--tx-l2)", marginTop: 5 }}>{sub}</div>}
     </div>
   );
 }
@@ -939,35 +939,56 @@ function AuthScreen({ onLogin, onBack, initialRole = "user" }) {
 // ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 function Sidebar({ role, page, onNav, collapsed, toggle }) {
   const menus = {
-    user: [{ id: "dashboard", ic: "⬡", lb: "Dashboard" }, { id: "report", ic: "◈", lb: "Report Pothole" }, { id: "myreports", ic: "≡", lb: "My Complaints" }, { id: "map", ic: "⊞", lb: "Map View" }, { id: "route", ic: "→", lb: "Route Check" }, { id: "notifs", ic: "◉", lb: "Notifications" }],
-    admin: [{ id: "dashboard", ic: "⬡", lb: "Dashboard" }, { id: "complaints", ic: "≡", lb: "All Complaints" }, { id: "map", ic: "⊞", lb: "Map Monitor" }, { id: "contractors", ic: "◈", lb: "Contractors" }, { id: "budget", ic: "⬢", lb: "Budget" }, { id: "activity", ic: "⌘", lb: "Activity Logs" }, { id: "priority", ic: "⚡", lb: "Priority Queue" }, { id: "notifications", ic: "🔔", lb: "Contractor Alerts" }],
-    contractor: [{ id: "dashboard", ic: "⬡", lb: "Dashboard" }, { id: "tasks", ic: "≡", lb: "My Tasks" }, { id: "expenses", ic: "⬢", lb: "Expenses" }, { id: "budget-request", ic: "💰", lb: "Budget Request" }, { id: "complete", ic: "✓", lb: "Mark Complete" }, { id: "map", ic: "⊞", lb: "Site Map" }],
+    user: [
+      { id: "dashboard", ic: "⬡", lb: "Dashboard" },
+      { id: "report", ic: "◈", lb: "Report Pothole" },
+      { id: "myreports", ic: "≡", lb: "My Reports" },
+      { id: "profile", ic: "👤", lb: "My Profile" },
+    ],
+    admin: [
+      { id: "dashboard", ic: "⬡", lb: "Dashboard" },
+      { id: "complaints", ic: "≡", lb: "All Complaints" },
+      { id: "map", ic: "⊞", lb: "Map Monitor" },
+      { id: "contractors", ic: "◈", lb: "Contractor Directory" },
+      { id: "budget", ic: "⬢", lb: "Budget Control" },
+      { id: "activity", ic: "⌘", lb: "Activity Logs" },
+      { id: "priority", ic: "⚡", lb: "Priority Queue" },
+      { id: "notifications", ic: "🔔", lb: "Contractor Alerts" },
+      { id: "profile", ic: "👤", lb: "My Profile" },
+    ],
+    contractor: [
+      { id: "dashboard", ic: "⬡", lb: "Dashboard" },
+      { id: "tasks", ic: "≡", lb: "My Assigned Jobs" },
+      { id: "expenses", ic: "💰", lb: "Expenses & Budget" },
+      { id: "complete", ic: "✓", lb: "Work Submission" },
+      { id: "profile", ic: "👤", lb: "My Profile" },
+    ],
   };
 
   const roleColors = { user: "#7aadda", admin: "#e8c96a", contractor: "#6ec98d" };
   const roleLabels = { user: "Citizen Portal", admin: "Gov. Admin", contractor: "Contractor Hub" };
 
   return (
-    <div style={{ width: collapsed ? 56 : 210, transition: "width 0.3s cubic-bezier(0.4,0,0.2,1)", height: "100vh", flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "1px solid rgba(255,255,255,0.06)", padding: collapsed ? "12px 8px" : "16px 10px", position: "relative", zIndex: 10, background: "rgba(10,12,20,0.95)" }}>
+    <div style={{ width: collapsed ? 56 : 220, transition: "width 0.3s cubic-bezier(0.4,0,0.2,1)", height: "100vh", flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "1px solid rgba(255,255,255,0.07)", padding: collapsed ? "12px 8px" : "16px 10px", position: "relative", zIndex: 10, background: "rgba(10,12,20,0.97)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 28, overflow: "hidden", paddingLeft: collapsed ? 0 : 4 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 9, background: `linear-gradient(135deg,${roleColors[role]}22,${roleColors[role]}0a)`, border: `1px solid ${roleColors[role]}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, color: roleColors[role], flexShrink: 0 }}>⬡</div>
+        <div style={{ width: 34, height: 34, borderRadius: 9, background: `linear-gradient(135deg,${roleColors[role]}22,${roleColors[role]}0a)`, border: `1px solid ${roleColors[role]}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: roleColors[role], flexShrink: 0 }}>⬡</div>
         {!collapsed && <div>
-          <div className="heading" style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>SmartRoad</div>
-          <div style={{ fontSize: 10, color: "var(--tx-l3)", whiteSpace: "nowrap" }}>{roleLabels[role]}</div>
+          <div className="heading" style={{ fontSize: 14, fontWeight: 700, whiteSpace: "nowrap" }}>SmartRoad</div>
+          <div style={{ fontSize: 11, color: "var(--tx-l2)", whiteSpace: "nowrap" }}>{roleLabels[role]}</div>
         </div>}
       </div>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-        {menus[role].map(item => (
+        {menus[role]?.map(item => (
           <div key={item.id} className={`nav-item ${page === item.id ? "active" : ""}`} onClick={() => onNav(item.id)} title={collapsed ? item.lb : ""} style={{ justifyContent: collapsed ? "center" : "flex-start", paddingLeft: collapsed ? 0 : 12 }}>
-            <span className="nav-ic" style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>{item.ic}</span>
-            {!collapsed && <span style={{ fontSize: 13 }}>{item.lb}</span>}
+            <span className="nav-ic" style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{item.ic}</span>
+            {!collapsed && <span style={{ fontSize: 13.5 }}>{item.lb}</span>}
           </div>
         ))}
       </div>
 
       <div className="divider" style={{ marginBottom: 12 }} />
-      <button onClick={toggle} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: "7px 0", cursor: "pointer", color: "var(--tx-l3)", fontSize: 13, width: "100%" }}>
+      <button onClick={toggle} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 8, padding: "8px 0", cursor: "pointer", color: "var(--tx-l2)", fontSize: 14, width: "100%" }}>
         {collapsed ? "→" : "←"}
       </button>
     </div>
@@ -975,31 +996,67 @@ function Sidebar({ role, page, onNav, collapsed, toggle }) {
 }
 
 // ─── TOPBAR ────────────────────────────────────────────────────────────────────
-function TopBar({ page, user, onLogout, onResetDemo }) {
-  const titles = { dashboard: "Dashboard", report: "Report a Pothole", myreports: "My Complaints", map: "Map View", route: "Route Check", notifs: "Notifications", complaints: "All Complaints", contractors: "Contractors", budget: "Budget Control", activity: "Activity Logs", priority: "Priority Queue", tasks: "My Tasks", expenses: "Submit Expenses", complete: "Mark Complete" };
+function TopBar({ page, user, onLogout, onResetDemo, onNav }) {
+  const titles = { 
+    dashboard: "Dashboard", 
+    report: "Report a Pothole", 
+    myreports: "My Reports", 
+    profile: "My Profile",
+    map: "Map Monitor", 
+    route: "Route Check", 
+    notifs: "Notifications", 
+    complaints: "All Complaints", 
+    contractors: "Contractor Directory", 
+    budget: "Budget Control", 
+    activity: "Activity Logs", 
+    priority: "Priority Queue", 
+    tasks: "My Assigned Jobs", 
+    expenses: "Expenses & Budget", 
+    complete: "Work Submission", 
+    "budget-request": "Budget Request" 
+  };
   return (
-    <div style={{ height: 56, display: "flex", alignItems: "center", paddingInline: 22, borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0, gap: 12 }}>
+    <div style={{ height: 60, display: "flex", alignItems: "center", paddingInline: 24, borderBottom: "1px solid rgba(255,255,255,0.07)", flexShrink: 0, gap: 12 }}>
       <div style={{ flex: 1 }}>
-        <h1 className="heading" style={{ fontSize: 15, fontWeight: 600, color: "var(--tx-l)" }}>{titles[page] || page}</h1>
+        <h1 className="heading" style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)" }}>{titles[page] || page}</h1>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         {onResetDemo && (
           <button
             onClick={onResetDemo}
             className="btn btn-ghost btn-sm"
-            style={{ fontSize: 11, color: "var(--gold)", borderColor: "rgba(201,168,76,0.25)" }}
+            style={{ fontSize: 12, color: "var(--gold)", borderColor: "rgba(201,168,76,0.25)" }}
             title="Reset demo data to initial connected records"
           >
             ↺ Reset Demo
           </button>
         )}
-        <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 99, background: "rgba(74,124,89,0.12)", border: "1px solid rgba(74,124,89,0.2)" }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6ec98d", boxShadow: "0 0 6px #6ec98d" }} />
-          <span style={{ fontSize: 11, color: "#6ec98d", fontWeight: 600 }}>Demo</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 12px", borderRadius: 99, background: "rgba(74,124,89,0.12)", border: "1px solid rgba(74,124,89,0.22)" }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#6ec98d", boxShadow: "0 0 6px #6ec98d" }} />
+          <span style={{ fontSize: 12, color: "#7ed4a0", fontWeight: 600 }}>Demo</span>
         </div>
-        <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.07)" }} />
-        <span style={{ fontSize: 12.5, color: "var(--tx-l3)" }} className="hide-m">{user?.name || user?.email}</span>
-        <button onClick={onLogout} className="btn btn-ghost btn-sm" style={{ fontSize: 11 }}>Logout</button>
+        <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.08)" }} />
+        <button
+          onClick={() => onNav && onNav("profile")}
+          style={{
+            background: page === "profile" ? "rgba(201,168,76,0.16)" : "rgba(255,255,255,0.04)",
+            border: `1px solid ${page === "profile" ? "var(--gold)" : "rgba(255,255,255,0.09)"}`,
+            borderRadius: 6,
+            padding: "4px 10px",
+            color: page === "profile" ? "var(--gold)" : "var(--tx-l2)",
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 13,
+            fontWeight: 500
+          }}
+          title="Open My Profile"
+        >
+          <span>👤</span>
+          <span className="hide-m">{user?.name || user?.email}</span>
+        </button>
+        <button onClick={onLogout} className="btn btn-ghost btn-sm" style={{ fontSize: 12 }}>Logout</button>
       </div>
     </div>
   );
@@ -1011,78 +1068,132 @@ function UserDashboard({ complaints, user, onNav }) {
   const counts = {
     total: mine.length,
     pending: mine.filter(c => c.status === "pending").length,
-    inprog: mine.filter(c => ["in_progress", "assigned"].includes(c.status)).length,
+    inprog: mine.filter(c => ["in_progress", "assigned", "in-progress"].includes(c.status)).length,
     done: mine.filter(c => c.status === "completed").length,
     reopen: mine.filter(c => c.status === "reopened").length,
-    rejected: mine.filter(c => c.status === "rejected").length,
   };
+
+  const getStepIndex = (status) => {
+    if (status === "pending") return 1;
+    if (status === "assigned") return 2;
+    if (["in_progress", "in-progress"].includes(status)) return 3;
+    if (status === "completed") return 4;
+    return 1;
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12 }}>
+      {/* Citizen Welcome Banner & Quick Action */}
+      <div className="card" style={{ padding: "20px 24px", background: "linear-gradient(135deg, rgba(122,173,218,0.12), rgba(10,12,20,0.4))", border: "1px solid rgba(122,173,218,0.25)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14 }}>
+        <div>
+          <div className="heading" style={{ fontSize: 18, color: "var(--tx-l)", marginBottom: 4 }}>
+            Welcome back, {user?.name || "Citizen"}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--tx-l2)" }}>
+            Help keep Indian roads safe. Submit verified reports and track repair status in real-time.
+          </div>
+        </div>
+        <button className="btn btn-gold btn-lg" onClick={() => onNav("report")} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span>◈</span> Report New Pothole
+        </button>
+      </div>
+
+      {/* Primary KPI Summary Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 14 }}>
         <StatCard icon="≡" val={counts.total} label="Total Reports" accent="#7aadda" />
-        <StatCard icon="◎" val={counts.pending} label="Pending" accent="#e8c96a" />
+        <StatCard icon="◎" val={counts.pending} label="Pending Review" accent="#e8c96a" />
         <StatCard icon="⚙" val={counts.inprog} label="In Progress" accent="#7aadda" />
-        <StatCard icon="✓" val={counts.done} label="Completed" accent="#6ec98d" />
-        <StatCard icon="✗" val={counts.rejected} label="Rejected" accent="#e8835c" />
-        <StatCard icon="↺" val={counts.reopen} label="Reopened" accent="#a48fd4" />
+        <StatCard icon="✓" val={counts.done} label="Resolved" accent="#6ec98d" />
+        {counts.reopen > 0 && <StatCard icon="↺" val={counts.reopen} label="Reopened" accent="#a48fd4" />}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="stack-m">
+      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 16 }} className="stack-m">
+        {/* Recent Reports Section with Status Progression */}
         <div className="card" style={{ padding: 22 }}>
-          <div className="heading" style={{ fontSize: 15, marginBottom: 16 }}>Recent Reports</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div>
+              <div className="heading" style={{ fontSize: 16 }}>My Recent Reports</div>
+              <div style={{ fontSize: 12, color: "var(--tx-l2)", marginTop: 2 }}>Track progression of your submitted road damage reports</div>
+            </div>
+            {mine.length > 0 && (
+              <button className="btn btn-ghost btn-sm" onClick={() => onNav("myreports")}>
+                View All ({mine.length}) →
+              </button>
+            )}
+          </div>
+
           {mine.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "28px 0", color: "var(--tx-l3)" }}>
-              <div style={{ fontSize: 32, marginBottom: 10, opacity: 0.4 }}>○</div>
-              <div style={{ fontSize: 13, marginBottom: 12 }}>No reports submitted yet</div>
-              <button className="btn btn-gold btn-sm" onClick={() => onNav("report")}>Report your first pothole</button>
+            <div style={{ textAlign: "center", padding: "36px 0", color: "var(--tx-l2)" }}>
+              <div style={{ fontSize: 36, marginBottom: 10, opacity: 0.4 }}>⬡</div>
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No reports submitted yet</div>
+              <div style={{ fontSize: 13, color: "var(--tx-l3)", marginBottom: 16 }}>Spot road damage? Upload a photo to report it directly to road authorities.</div>
+              <button className="btn btn-gold btn-sm" onClick={() => onNav("report")}>+ Submit Your First Report</button>
             </div>
-          ) : mine.slice(0, 5).map(c => (
-            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <div style={{ width: 34, height: 34, borderRadius: 9, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, color: "var(--tx-l3)" }}>◉</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</div>
-                <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 1 }}>{c.date}</div>
-                {c.status === "completed" && c.completionPhoto && (
-                  <div style={{ fontSize: 10, color: "#6ec98d", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
-                    📷 Completion photo uploaded
-                    {c.completionTimestamp && <span>• {c.completionTimestamp}</span>}
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {mine.slice(0, 4).map(c => {
+                const step = getStepIndex(c.status);
+                return (
+                  <div key={c.id} style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--tx-l)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</span>
+                          <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace", flexShrink: 0 }}>{c.id}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                          <span>📍 {c.area}</span>
+                          <span>•</span>
+                          <span>📅 {c.date}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
+                        <SBadge s={c.status} />
+                      </div>
+                    </div>
+
+                    {/* Progress Tracker Stepper */}
+                    <div style={{ marginTop: 4, padding: "8px 10px", background: "rgba(0,0,0,0.2)", borderRadius: 8 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--tx-l3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+                        <span style={{ color: step >= 1 ? "#6ec98d" : "var(--tx-l3)" }}>1. Reported</span>
+                        <span style={{ color: step >= 2 ? "#6ec98d" : "var(--tx-l3)" }}>2. Verified</span>
+                        <span style={{ color: step >= 3 ? "#6ec98d" : "var(--tx-l3)" }}>3. In Repair</span>
+                        <span style={{ color: step >= 4 ? "#6ec98d" : "var(--tx-l3)" }}>4. Resolved</span>
+                      </div>
+                      <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 99, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${(step / 4) * 100}%`, background: step === 4 ? "#6ec98d" : "linear-gradient(90deg, #7aadda, #e8c96a)", transition: "width 0.4s ease" }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => onNav("myreports")} style={{ fontSize: 11, padding: "4px 10px" }}>
+                        View Report Details →
+                      </button>
+                    </div>
                   </div>
-                )}
-                {c.status === "completed" && !c.completionPhoto && (
-                  <div style={{ fontSize: 10, color: "#e8c96a", marginTop: 2 }}>
-                    ⚠️ No completion photo provided
-                  </div>
-                )}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                <SBadge s={c.status} />
-                {c.status === "completed" && c.completionPhoto && (
-                  <button 
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => showToast("Photo viewer coming soon!", "info")}
-                    style={{ fontSize: 10, padding: "4px 8px", borderColor: "#6ec98d", color: "#6ec98d" }}
-                  >
-                    📷 View Photo
-                  </button>
-                )}
-              </div>
+                );
+              })}
             </div>
-          ))}
-          {mine.length > 0 && <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center", marginTop: 12 }} onClick={() => onNav("myreports")}>View All →</button>}
+          )}
         </div>
 
-        <div className="card" style={{ padding: 22 }}>
-          <div className="heading" style={{ fontSize: 15, marginBottom: 14 }}>City Map</div>
-          <MapView height={215} complaints={complaints} />
-        </div>
-      </div>
-
-      <div className="card" style={{ padding: 22 }}>
-        <div className="heading" style={{ fontSize: 15, marginBottom: 14 }}>Quick Actions</div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button className="btn btn-gold" onClick={() => onNav("report")}>◈ Report New Pothole</button>
-          <button className="btn btn-ghost" onClick={() => onNav("route")}>→ Check My Route</button>
-          <button className="btn btn-ghost" onClick={() => onNav("map")}>⊞ Full Map</button>
+        {/* Citizen's Reported Locations Map (Strictly filtered to authenticated citizen) */}
+        <div className="card" style={{ padding: 22, display: "flex", flexDirection: "column" }}>
+          <div className="heading" style={{ fontSize: 16, marginBottom: 4 }}>My Reported Sites</div>
+          <div style={{ fontSize: 12, color: "var(--tx-l2)", marginBottom: 14 }}>
+            {mine.length} geotagged location{mine.length === 1 ? "" : "s"} submitted by you
+          </div>
+          <div style={{ flex: 1, minHeight: 240, borderRadius: 10, overflow: "hidden" }}>
+            <MapView height={240} complaints={mine} />
+          </div>
+          <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => onNav("myreports")}>
+              ≡ My Reports List
+            </button>
+            <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => onNav("profile")}>
+              👤 My Profile
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1316,8 +1427,8 @@ function MyComplaints({ complaints, user, onUpdate, showToast }) {
   if (!mine.length) return (
     <div className="card" style={{ padding: 44, textAlign: "center" }}>
       <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>≡</div>
-      <div className="heading" style={{ fontSize: 18, marginBottom: 6 }}>No complaints yet</div>
-      <div style={{ color: "var(--tx-l3)", fontSize: 13 }}>Your submitted complaints appear here</div>
+      <div className="heading" style={{ fontSize: 20, marginBottom: 8 }}>No complaints yet</div>
+      <div style={{ color: "var(--tx-l2)", fontSize: 14 }}>Your submitted complaints appear here</div>
     </div>
   );
 
@@ -1328,11 +1439,11 @@ function MyComplaints({ complaints, user, onUpdate, showToast }) {
           <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
             <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>◉</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                <span className="heading" style={{ fontWeight: 600, fontSize: 14 }}>{c.title}</span>
-                <span style={{ fontSize: 11, color: "var(--tx-l3)", fontFamily: "monospace" }}>#{c.id}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span className="heading" style={{ fontWeight: 600, fontSize: 15 }}>{c.title}</span>
+                <span style={{ fontSize: 12, color: "var(--tx-l2)", fontFamily: "monospace" }}>#{c.id}</span>
               </div>
-              <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>⊞ {c.area} · {c.date}</div>
+              <div style={{ fontSize: 13, color: "var(--tx-l2)" }}>⊞ {c.area} · {c.date}</div>
               <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
                 <SBadge s={c.status} /><SevBadge s={c.severity} />{c.verified && <VBadge s={c.verified} />}
               </div>
@@ -1485,13 +1596,26 @@ function MyComplaints({ complaints, user, onUpdate, showToast }) {
               )}
               {c.desc && <div style={{ fontSize: 13, color: "var(--tx-l2)", marginBottom: 18, lineHeight: 1.6 }}>{c.desc}</div>}
               
-              {c.aiData && c.costBreakdown && (
-                <CostCalculationBreakdown 
-                  aiData={c.aiData} 
-                  costBreakdown={c.costBreakdown} 
-                  rates={c.costBreakdown.rates_used || { cement: 500, sand: 1700, aggregate: 1400, labor: 400 }}
-                />
-              )}
+              {/* Citizen-Facing Resolution Progress Stepper */}
+              <div style={{ marginBottom: 18, padding: "14px 18px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 12 }}>
+                  Report Resolution Progress
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, textAlign: "center" }}>
+                  {[
+                    { label: "1. Reported", active: true, desc: c.date ? c.date.split(",")[0] : "Logged" },
+                    { label: "2. Verified", active: ["assigned", "in_progress", "in-progress", "completed"].includes(c.status), desc: "Inspected" },
+                    { label: "3. Dispatched", active: ["in_progress", "in-progress", "completed"].includes(c.status), desc: c.contractor ? "Assigned" : "Pending" },
+                    { label: "4. Resolved", active: c.status === "completed", desc: c.verified ? "Verified" : c.status === "completed" ? "Repaired" : "Pending" },
+                  ].map((st, sidx) => (
+                    <div key={sidx} style={{ padding: "8px 4px", borderRadius: 8, background: st.active ? "rgba(110,201,141,0.08)" : "rgba(255,255,255,0.02)", border: st.active ? "1px solid rgba(110,201,141,0.2)" : "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: st.active ? "#6ec98d" : "var(--tx-l3)" }}>{st.label}</div>
+                      <div style={{ fontSize: 10.5, color: "var(--tx-l3)", marginTop: 2 }}>{st.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {(c.timeline || []).length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>Timeline</div>
@@ -1506,10 +1630,12 @@ function MyComplaints({ complaints, user, onUpdate, showToast }) {
                   </div>
                 </div>
               )}
-              {c.contractor && <div style={{ fontSize: 13, marginBottom: 12, color: "var(--tx-l2)" }}>
-                Contractor: <b style={{ color: "var(--tx-l)" }}>{c.contractor}</b>
-                {c.budget && <> · Budget: <b style={{ color: "#6ec98d" }}>₹{c.budget.toLocaleString()}</b></>}
-              </div>}
+              {c.contractor && (
+                <div style={{ fontSize: 13, marginBottom: 14, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>Assigned Road Maintenance Unit:</span>
+                  <span style={{ fontWeight: 600, color: "var(--tx-l)" }}>{c.contractor}</span>
+                </div>
+              )}
               {c.status === "completed" && !c.verified && (
                 <div style={{ padding: "16px 18px", borderRadius: 11, background: "rgba(61,90,122,0.1)", border: "1px solid rgba(61,90,122,0.2)" }}>
                   <div className="heading" style={{ fontSize: 14, marginBottom: 6 }}>Verify Repair Quality</div>
@@ -1672,7 +1798,7 @@ function Notifications({ complaints, user }) {
   if (!notifs.length) return (
     <div className="card" style={{ padding: 44, textAlign: "center" }}>
       <div style={{ fontSize: 36, marginBottom: 12, opacity: 0.3 }}>◉</div>
-      <div style={{ color: "var(--tx-l3)", fontSize: 13 }}>No notifications yet. Updates appear as your complaints change status.</div>
+      <div style={{ color: "var(--tx-l2)", fontSize: 14 }}>No notifications yet. Updates appear as your complaints change status.</div>
     </div>
   );
 
@@ -1682,9 +1808,9 @@ function Notifications({ complaints, user }) {
         <div key={n.id + i} className="card" style={{ padding: 16, display: "flex", gap: 12, alignItems: "flex-start" }}>
           <div style={{ width: 34, height: 34, borderRadius: 9, background: `${n.color}18`, border: `1px solid ${n.color}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: n.color, flexShrink: 0 }}>{n.icon}</div>
           <div style={{ flex: 1 }}>
-            <div className="heading" style={{ fontWeight: 600, fontSize: 13, marginBottom: 3 }}>{n.title}</div>
-            <div style={{ fontSize: 12, color: "var(--tx-l3)", marginBottom: 4, lineHeight: 1.5 }}>{n.msg}</div>
-            <div style={{ fontSize: 11, color: "var(--tx-l3)", opacity: 0.6 }}>{n.time}</div>
+            <div className="heading" style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{n.title}</div>
+            <div style={{ fontSize: 13, color: "var(--tx-l2)", marginBottom: 5, lineHeight: 1.5 }}>{n.msg}</div>
+            <div style={{ fontSize: 12, color: "var(--tx-l2)", opacity: 0.75 }}>{n.time}</div>
           </div>
         </div>
       ))}
@@ -1720,31 +1846,31 @@ function AdminDashboard({ complaints, auditLogs, budgetConfig }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }} className="stack-m">
         <div className="card" style={{ padding: 22 }}>
-          <div className="heading" style={{ fontSize: 15, marginBottom: 18 }}>Budget Overview</div>
+          <div className="heading" style={{ fontSize: 16, marginBottom: 18 }}>Budget Overview</div>
           {[
             ["Total Budget", `₹${(budgetConfig.total / 1000).toFixed(0)}K`, 100, "#7aadda"],
             ["Allocated", `₹${(allocated / 1000).toFixed(1)}K`, Math.min(allocated / budgetConfig.total * 100, 100), "#e8c96a"],
             ["Spent", `₹${(spent / 1000).toFixed(1)}K`, Math.min(spent / budgetConfig.total * 100, 100), "#e8835c"],
             ["Remaining", `₹${((budgetConfig.total - allocated) / 1000).toFixed(1)}K`, Math.max((budgetConfig.total - allocated) / budgetConfig.total * 100, 0), "#6ec98d"],
           ].map(([l, v, p, c]) => (
-            <div key={l} style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
-                <span style={{ color: "var(--tx-l3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 11 }}>{l}</span>
-                <span style={{ fontWeight: 700, color: c }}>{v}</span>
+            <div key={l} style={{ marginBottom: 18 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
+                <span style={{ color: "var(--tx-l2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 11.5 }}>{l}</span>
+                <span style={{ fontWeight: 700, color: c, fontSize: 14 }}>{v}</span>
               </div>
               <div className="pbar"><div className="pfill" style={{ width: `${p}%`, background: `linear-gradient(90deg,${c}90,${c})` }} /></div>
             </div>
           ))}
         </div>
         <div className="card" style={{ padding: 22 }}>
-          <div className="heading" style={{ fontSize: 15, marginBottom: 16 }}>Quick Stats</div>
+          <div className="heading" style={{ fontSize: 16, marginBottom: 16 }}>Quick Stats</div>
           {[
             ["High Priority", complaints.filter(c => c.severity === "high").length, "#e8835c"],
             ["Fraud Flags", counts.flags, counts.flags > 0 ? "#e8835c" : "#6ec98d"],
             ["Avg. Cost", complaints.length > 0 ? "₹" + Math.floor(complaints.reduce((s, c) => s + (c.cost || 0), 0) / complaints.length).toLocaleString() : "—", "var(--tx-l)"],
           ].map(([l, v, c]) => (
-            <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: 13 }}>
-              <span style={{ color: "var(--tx-l3)" }}>{l}</span>
+            <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 14 }}>
+              <span style={{ color: "var(--tx-l2)" }}>{l}</span>
               <span style={{ fontWeight: 700, color: c }}>{v}</span>
             </div>
           ))}
@@ -1752,7 +1878,7 @@ function AdminDashboard({ complaints, auditLogs, budgetConfig }) {
       </div>
 
       <div className="card" style={{ padding: 22 }}>
-        <div className="heading" style={{ fontSize: 15, marginBottom: 14 }}>City Map</div>
+        <div className="heading" style={{ fontSize: 16, marginBottom: 14 }}>City Map</div>
         <MapView height={280} complaints={complaints} showFilters />
       </div>
     </div>
@@ -1848,13 +1974,13 @@ function AdminComplaints({ complaints, contractors, onUpdate, onUpdateContractor
               <tbody>
                 {filtered.map(c => (
                   <tr key={c.id}>
-                    <td style={{ fontFamily: "monospace", fontSize: 12, color: "var(--gold2)", fontWeight: 700 }}>{c.id}</td>
-                    <td style={{ maxWidth: 200 }}><div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 13 }}>{c.title}</div></td>
-                    <td style={{ fontSize: 12, color: "var(--tx-l3)" }}>{c.area}</td>
+                    <td style={{ fontFamily: "monospace", fontSize: 12.5, color: "var(--gold2)", fontWeight: 700 }}>{c.id}</td>
+                    <td style={{ maxWidth: 200 }}><div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 14, fontWeight: 500 }}>{c.title}</div></td>
+                    <td style={{ fontSize: 13, color: "var(--tx-l2)" }}>{c.area}</td>
                     <td><SevBadge s={c.severity} /></td>
                     <td><SBadge s={c.status} /></td>
-                    <td style={{ fontSize: 12, color: "var(--tx-l3)" }}>{c.date}</td>
-                    <td style={{ fontSize: 13, fontWeight: 700, color: "#6ec98d" }}>₹{(c.cost || 0).toLocaleString()}</td>
+                    <td style={{ fontSize: 13, color: "var(--tx-l2)" }}>{c.date}</td>
+                    <td style={{ fontSize: 14, fontWeight: 700, color: "#7ed4a0" }}>₹{(c.cost || 0).toLocaleString()}</td>
                     <td><button className="btn btn-ghost btn-sm" onClick={() => { setSel(c); setConSel(c.contractorId || ""); setBudgetIn(c.budget || ""); setFraudState("idle"); setFraudResult(null); }}>View</button></td>
                   </tr>
                 ))}
@@ -1870,8 +1996,8 @@ function AdminComplaints({ complaints, contractors, onUpdate, onUpdateContractor
             <div className="modal-inner">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
                 <div>
-                  <div className="heading" style={{ fontSize: 20 }}>{sel.id}</div>
-                  <div style={{ color: "var(--tx-l3)", fontSize: 13, marginTop: 2 }}>{sel.title}</div>
+                  <div className="heading" style={{ fontSize: 21 }}>{sel.id}</div>
+                  <div style={{ color: "var(--tx-l2)", fontSize: 14, marginTop: 3 }}>{sel.title}</div>
                 </div>
                 <button onClick={() => setSel(null)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, width: 32, height: 32, cursor: "pointer", color: "var(--tx-l3)", fontSize: 18 }}>×</button>
               </div>
@@ -1887,11 +2013,11 @@ function AdminComplaints({ complaints, contractors, onUpdate, onUpdateContractor
               )}
               {sel.desc && <div style={{ fontSize: 13, color: "var(--tx-l2)", marginBottom: 18, lineHeight: 1.6 }}>{sel.desc}</div>}
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 18, fontSize: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 18 }}>
                 {[["Area", sel.area], ["Severity", sel.severity], ["Date", sel.date], ["Cost", "₹" + (sel.cost || 0).toLocaleString()], ["Reporter", sel.reportedBy], ["Contractor", sel.contractor || "Unassigned"]].map(([l, v]) => (
                   <div key={l} style={{ padding: "10px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <div style={{ color: "var(--tx-l3)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 3 }}>{l}</div>
-                    <div style={{ fontWeight: 600, fontSize: 13 }}>{v || "—"}</div>
+                    <div style={{ color: "var(--tx-l2)", fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 4 }}>{l}</div>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{v || "—"}</div>
                   </div>
                 ))}
               </div>
@@ -2130,10 +2256,10 @@ function AdminNotifications({ complaints, showToast }) {
                       {getTypeIcon(notification.type)}
                     </span>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--tx-l2)', marginBottom: 4 }}>
+                      <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--tx-l)', marginBottom: 5 }}>
                         {notification.title}
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--tx-l3)' }}>
+                      <div style={{ fontSize: 13, color: 'var(--tx-l2)' }}>
                         📍 {notification.area} • 📅 {new Date(notification.date).toLocaleDateString()}
                       </div>
                       {notification.contractor && (
@@ -2158,9 +2284,9 @@ function AdminNotifications({ complaints, showToast }) {
                 </div>
                 
                 <div style={{ 
-                  fontSize: 12, 
-                  color: 'var(--tx-l3)', 
-                  lineHeight: 1.5,
+                  fontSize: 13, 
+                  color: 'var(--tx-l2)', 
+                  lineHeight: 1.6,
                   marginBottom: 16,
                   padding: 12,
                   background: 'rgba(255,255,255,0.03)',
@@ -2407,10 +2533,11 @@ function CostCalculationBreakdown({ aiData, costBreakdown, rates }) {
     </div>
   );
 }
-function AdminContractors({ contractors, complaints, onAddContractor, onUpdateContractor, showToast, budgetConfig, onBudgetUpdate }) {
+function AdminContractors({ contractors, complaints, onAddContractor, onUpdateContractor, showToast }) {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingContractor, setEditingContractor] = useState(null);
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", allocatedBudget: "" });
+  const [viewingContractor, setViewingContractor] = useState(null);
+  const [viewingJobs, setViewingJobs] = useState(null);
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", allocatedBudget: "", contactPerson: "", serviceArea: "", specialization: "" });
   const [showBudgetRequests, setShowBudgetRequests] = useState(false);
 
   const handleSubmit = (e) => {
@@ -2421,102 +2548,49 @@ function AdminContractors({ contractors, complaints, onAddContractor, onUpdateCo
     }
 
     const contractor = {
-      id: editingContractor?.id || "CON" + Date.now(),
+      id: "CON" + Date.now(),
       name: formData.name,
+      contactPerson: formData.contactPerson || "Lead Engineer",
       email: formData.email,
       phone: formData.phone,
+      serviceArea: formData.serviceArea || "Municipal Central Zone",
+      specialization: formData.specialization || "General Road Restoration",
       password: formData.password || "contractor" + Math.random().toString(36).substr(2, 6),
       active: true,
-      createdAt: editingContractor?.createdAt || new Date().toISOString(),
-      allocatedBudget: formData.allocatedBudget !== "" ? Number(formData.allocatedBudget) : (editingContractor?.allocatedBudget || 0),
-      usedBudget: editingContractor?.usedBudget || 0,
-      pendingBudgetRequests: editingContractor?.pendingBudgetRequests || []
+      verified: true,
+      createdAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+      allocatedBudget: formData.allocatedBudget !== "" ? Number(formData.allocatedBudget) : 50000,
+      usedBudget: 0,
+      pendingBudgetRequests: []
     };
 
-    if (editingContractor) {
-      onUpdateContractor(contractor, {
-        actor: "Admin",
-        action: `Updated contractor ${contractor.name}`,
-        type: "contractor_update"
-      });
-      showToast("Contractor updated successfully", "success");
-      
-      // Send email notification for updated credentials
-      sendContractorNotification(contractor, 'updated');
-    } else {
-      onAddContractor(contractor);
-      showToast("Contractor added successfully", "success");
-      
-      // Send email notification for new credentials
-      sendContractorNotification(contractor, 'new');
-    }
+    onAddContractor(contractor);
+    showToast("Contractor onboarded successfully", "success");
+    sendContractorNotification(contractor, 'new');
 
-    setFormData({ name: "", email: "", phone: "", password: "", allocatedBudget: "" });
-    setEditingContractor(null);
+    setFormData({ name: "", email: "", phone: "", password: "", allocatedBudget: "", contactPerson: "", serviceArea: "", specialization: "" });
     setShowAddModal(false);
   };
 
   const sendContractorNotification = (contractor, action) => {
-    // In a real implementation, this would send an email
-    const subject = action === 'new' ? 'SmartRoad Contractor Account Created' : 'SmartRoad Contractor Account Updated';
-    const body = `
-Dear ${contractor.name},
-
-Your SmartRoad contractor account has been ${action === 'new' ? 'created' : 'updated'}.
-
-Login Details:
-- Email: ${contractor.email}
-- Password: ${contractor.password}
-- Phone: ${contractor.phone}
-
-Please use these credentials to login to the SmartRoad Contractor Portal at:
-https://smartroad.gov.in/contractor
-
-For security reasons, please change your password after first login.
-
-Best regards,
-SmartRoad Administration Team
-    `;
-    
+    const subject = 'SmartRoad Contractor Account Created';
+    const body = `Dear ${contractor.name},\nYour SmartRoad contractor account has been created.\nLogin Details: Email: ${contractor.email}, Phone: ${contractor.phone}`;
     console.log('EMAIL NOTIFICATION:', { subject, body, to: contractor.email });
-    // In production, integrate with email service like SendGrid, AWS SES, etc.
-    showToast(`Login credentials sent to ${contractor.email}`, "success");
+    showToast(`Credentials dispatched to ${contractor.email}`, "success");
   };
 
-  const handleEdit = (contractor) => {
-    setEditingContractor(contractor);
-    setFormData({
-      name: contractor.name,
-      email: contractor.email,
-      phone: contractor.phone,
-      password: contractor.password || "",
-      allocatedBudget: contractor.allocatedBudget ?? ""
-    });
-    setShowAddModal(true);
-  };
-
-  const handleDeactivate = (contractor) => {
-    const used = contractor.usedBudget || 0;
-    const allocated = contractor.allocatedBudget || 0;
-    const remaining = allocated - used;
-    
-    if (remaining > 0) {
-      showToast(`₹${remaining.toLocaleString()} will be returned to admin budget pool`, "success");
-    }
-    
-    const updatedContractor = {
+  const handleToggleActive = (contractor) => {
+    const nextActive = contractor.active === false;
+    const updated = {
       ...contractor,
-      active: false,
-      allocatedBudget: used, // Reduce allocated to what was actually used
+      active: nextActive,
     };
-    
-    onUpdateContractor(updatedContractor, {
+    onUpdateContractor(updated, {
       actor: "Admin",
-      action: `Deactivated contractor ${contractor.name}${remaining > 0 ? ` and returned ₹${remaining.toLocaleString()} to budget` : ''}`,
+      action: `${nextActive ? "Reactivated" : "Deactivated"} contractor ${contractor.name}`,
       type: "contractor_deactivate"
     });
-    
-    showToast(`Contractor ${contractor.name} deactivated`, "info");
+    showToast(`Contractor ${contractor.name} ${nextActive ? "activated" : "deactivated"}`, "info");
   };
 
   // Get all pending budget requests from all contractors
@@ -2530,7 +2604,6 @@ SmartRoad Administration Team
     const contractor = contractors.find(c => c.id === request.contractorId);
     if (!contractor) return;
 
-    // Update contractor's allocated budget and remove from pending
     const updatedRequests = (contractor.pendingBudgetRequests || []).map(r => 
       r.id === request.id ? { ...r, status: "approved" } : r
     );
@@ -2554,7 +2627,6 @@ SmartRoad Administration Team
     const contractor = contractors.find(c => c.id === request.contractorId);
     if (!contractor) return;
 
-    // Update request status to rejected
     const updatedRequests = (contractor.pendingBudgetRequests || []).map(r => 
       r.id === request.id ? { ...r, status: "rejected" } : r
     );
@@ -2575,12 +2647,14 @@ SmartRoad Administration Team
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <div className="heading-i" style={{ fontSize: 26, marginBottom: 4 }}>Contractor Registry</div>
-          <div style={{ fontSize: 13, color: "var(--tx-l3)" }}>{contractors.length} registered contractors</div>
+          <div className="heading-i" style={{ fontSize: 26, marginBottom: 4 }}>Contractor Directory</div>
+          <div style={{ fontSize: 14, color: "var(--tx-l2)" }}>
+            {contractors.length} registered municipal contractors · View-only oversight directory
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           {allPendingRequests.length > 0 && (
             <button 
               className="btn btn-gold" 
@@ -2608,100 +2682,540 @@ SmartRoad Administration Team
             </button>
           )}
           <button className="btn btn-gold" onClick={() => setShowAddModal(true)}>
-            + Add Contractor
+            + Onboard Contractor
           </button>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 14 }}>
-        {contractors.map((c, i) => {
-          const assigned = complaints.filter(x => x.contractorId === c.id);
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(310px,1fr))", gap: 14 }}>
+        {contractors.map((c) => {
+          const assigned = complaints.filter(x => x.contractorId === c.id || x.contractor === c.name);
           const done = assigned.filter(x => x.status === "completed");
           const budgetUsed = c.usedBudget || 0;
           const allocated = c.allocatedBudget || 0;
           const remaining = allocated - budgetUsed;
           const budgetPercent = allocated > 0 ? (budgetUsed / allocated * 100) : 0;
           return (
-            <div key={c.id} className="card" style={{ padding: 22 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.08))", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>◈</div>
-                <div style={{ flex: 1 }}>
-                  <div className="heading" style={{ fontSize: 14, fontWeight: 600 }}>{c.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 1 }}>{c.email}</div>
+            <div key={c.id} className="card" style={{ padding: 22, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.08))", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>◈</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="heading" style={{ fontSize: 15, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
+                    <div style={{ fontSize: 12, color: "var(--tx-l2)", marginTop: 2 }}>{c.contactPerson ? `👤 ${c.contactPerson}` : c.email}</div>
+                  </div>
+                  <span className={`badge ${c.active !== false ? "b-done" : "b-reject"}`}>
+                    {c.active !== false ? "Active" : "Inactive"}
+                  </span>
                 </div>
-                <span className="badge b-done">Active</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
-                {[["Active", assigned.filter(x => x.status !== "completed").length, "#7aadda"], ["Done", done.length, "#6ec98d"], ["Allocated", "₹" + Math.floor(allocated / 1000) + "K", "#e8c96a"]].map(([l, v, col]) => (
-                  <div key={l} style={{ textAlign: "center", padding: "10px 4px", background: "rgba(255,255,255,0.03)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: col }}>{v}</div>
-                    <div style={{ fontSize: 10, color: "var(--tx-l3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{l}</div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Budget Progress Bar */}
-              {allocated > 0 && (
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 6 }}>
-                    <span style={{ color: "var(--tx-l3)" }}>Budget Usage</span>
-                    <span style={{ color: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d", fontWeight: 600 }}>
-                      ₹{Math.floor(budgetUsed / 1000)}K / ₹{Math.floor(allocated / 1000)}K
-                    </span>
-                  </div>
-                  <div className="pbar" style={{ height: 6 }}>
-                    <div className="pfill" style={{ 
-                      width: `${Math.min(budgetPercent, 100)}%`, 
-                      background: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d" 
-                    }} />
-                  </div>
-                  <div style={{ fontSize: 10, color: "var(--tx-l3)", marginTop: 4 }}>
-                    Remaining: ₹{Math.max(0, remaining).toLocaleString()}
-                  </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+                  {[["Active", assigned.filter(x => x.status !== "completed").length, "#7aadda"], ["Done", done.length, "#6ec98d"], ["Allocated", "₹" + Math.floor(allocated / 1000) + "K", "#e8c96a"]].map(([l, v, col]) => (
+                    <div key={l} style={{ textAlign: "center", padding: "10px 4px", background: "rgba(255,255,255,0.03)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.07)" }}>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: col }}>{v}</div>
+                      <div style={{ fontSize: 10.5, color: "var(--tx-l2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{l}</div>
+                    </div>
+                  ))}
                 </div>
-              )}
-              
-              <div style={{ fontSize: 12, color: "var(--tx-l3)", marginBottom: 12 }}>📱 {c.phone}</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => handleEdit(c)}>Edit</button>
-                <button className="btn btn-ghost btn-sm" style={{ color: "#e8835c" }} onClick={() => handleDeactivate(c)}>Deactivate</button>
+                
+                {/* Budget Progress Bar */}
+                {allocated > 0 && (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 6 }}>
+                      <span style={{ color: "var(--tx-l2)" }}>Budget Usage</span>
+                      <span style={{ color: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d", fontWeight: 600, fontSize: 12.5 }}>
+                        ₹{Math.floor(budgetUsed / 1000)}K / ₹{Math.floor(allocated / 1000)}K
+                      </span>
+                    </div>
+                    <div className="pbar" style={{ height: 6 }}>
+                      <div className="pfill" style={{ 
+                        width: `${Math.min(budgetPercent, 100)}%`, 
+                        background: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d" 
+                      }} />
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4 }}>
+                      Remaining: ₹{Math.max(0, remaining).toLocaleString()}
+                    </div>
+                  </div>
+                )}
+                
+                <div style={{ fontSize: 12.5, color: "var(--tx-l2)", marginBottom: 8 }}>📱 {c.phone}</div>
+                {c.serviceArea && (
+                  <div style={{ fontSize: 11.5, color: "var(--tx-l3)", marginBottom: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    📍 {c.serviceArea}
+                  </div>
+                )}
+              </div>
+
+              {/* View-Only Directory Controls */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => setViewingContractor(c)} style={{ flex: 1 }}>
+                  View Profile
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setViewingJobs(c)} style={{ flex: 1 }}>
+                  Jobs ({assigned.length})
+                </button>
+                <button 
+                  className="btn btn-ghost btn-sm" 
+                  style={{ color: c.active !== false ? "#e8835c" : "#6ec98d" }} 
+                  onClick={() => handleToggleActive(c)}
+                >
+                  {c.active !== false ? "Deactivate" : "Activate"}
+                </button>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Add/Edit Contractor Modal */}
+      {/* View Profile Modal (View-Only for Admin Oversight) */}
+      {viewingContractor && (
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(3, 6, 14, 0.88)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setViewingContractor(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 580,
+              background: "linear-gradient(165deg, #131929 0%, #0d121d 100%)",
+              border: "1px solid rgba(201,168,76,0.35)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.92), 0 0 0 1px rgba(255,255,255,0.08)",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "20px 24px",
+                background: "rgba(255,255,255,0.02)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 10,
+                    background: "rgba(201,168,76,0.15)",
+                    border: "1px solid rgba(201,168,76,0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    color: "var(--gold2)",
+                  }}
+                >
+                  ◈
+                </div>
+                <div>
+                  <div className="heading" style={{ fontSize: 18, fontWeight: 700, color: "var(--tx-l)" }}>
+                    Contractor Dossier
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>
+                    Official Municipal Record · View-Only Oversight
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingContractor(null)}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 8,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "var(--tx-l)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: "22px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Company Banner */}
+              <div
+                style={{
+                  padding: "16px 18px",
+                  background: "#161d2f",
+                  borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.09)",
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--gold2)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+                  Company / Firm Name
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "var(--tx-l)", letterSpacing: "-0.01em" }}>
+                  {viewingContractor.name}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                  <span className="badge b-done" style={{ fontSize: 11, padding: "4px 10px" }}>
+                    ✓ Verified Municipal Vendor
+                  </span>
+                  <span
+                    className={`badge ${viewingContractor.active !== false ? "b-progress" : "b-reject"}`}
+                    style={{ fontSize: 11, padding: "4px 10px" }}
+                  >
+                    {viewingContractor.active !== false ? "● Status: Active" : "○ Status: Inactive"}
+                  </span>
+                  <span style={{ fontSize: 11, color: "var(--tx-l3)", marginLeft: "auto", fontFamily: "monospace" }}>
+                    ID: {viewingContractor.id}
+                  </span>
+                </div>
+              </div>
+
+              {/* Contact Details Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div
+                  style={{
+                    padding: "13px 15px",
+                    background: "#161d2f",
+                    borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <div style={{ fontSize: 11, color: "var(--tx-l3)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>👤</span> Contact Person
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--tx-l)", marginTop: 4 }}>
+                    {viewingContractor.contactPerson || "Lead Representative"}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    padding: "13px 15px",
+                    background: "#161d2f",
+                    borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <div style={{ fontSize: 11, color: "var(--tx-l3)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>📞</span> Official Phone
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--tx-l)", marginTop: 4 }}>
+                    {viewingContractor.phone || "—"}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    padding: "13px 15px",
+                    background: "#161d2f",
+                    borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.07)",
+                    gridColumn: "span 2",
+                  }}
+                >
+                  <div style={{ fontSize: 11, color: "var(--tx-l3)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>✉️</span> Registered Dispatch Email
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--tx-l)", marginTop: 4 }}>
+                    {viewingContractor.email || "—"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Area */}
+              <div
+                style={{
+                  padding: "14px 16px",
+                  background: "#161d2f",
+                  borderRadius: 10,
+                  border: "1px solid rgba(255,255,255,0.07)",
+                }}
+              >
+                <div style={{ fontSize: 11, color: "var(--tx-l3)", display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <span>📍</span> Operational Service Zones
+                </div>
+                <div style={{ fontSize: 13.5, color: "var(--tx-l)", lineHeight: 1.5 }}>
+                  {viewingContractor.serviceArea || "Municipal-wide Road Restoration Services"}
+                </div>
+              </div>
+
+              {/* Specialization */}
+              <div
+                style={{
+                  padding: "14px 16px",
+                  background: "#161d2f",
+                  borderRadius: 10,
+                  border: "1px solid rgba(255,255,255,0.07)",
+                }}
+              >
+                <div style={{ fontSize: 11, color: "var(--tx-l3)", display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <span>🛠️</span> Technical Specialization & Category
+                </div>
+                <div style={{ fontSize: 13.5, color: "var(--tx-l)", lineHeight: 1.5 }}>
+                  {viewingContractor.specialization || "Bituminous & Concrete Pavement Maintenance"}
+                </div>
+              </div>
+
+              {/* Budget Overview Box */}
+              <div
+                style={{
+                  padding: "16px 18px",
+                  background: "rgba(201,168,76,0.08)",
+                  borderRadius: 12,
+                  border: "1px solid rgba(201,168,76,0.3)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "var(--gold2)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Municipal Budget Allocation Status
+                  </span>
+                  <span style={{ fontSize: 11, color: "var(--tx-l3)" }}>FY 2026</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, textAlign: "center" }}>
+                  <div style={{ padding: "10px 8px", background: "#101625", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div style={{ fontSize: 11, color: "var(--tx-l3)" }}>Allocated</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#e8c96a", marginTop: 2 }}>
+                      ₹{(viewingContractor.allocatedBudget || 0).toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{ padding: "10px 8px", background: "#101625", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div style={{ fontSize: 11, color: "var(--tx-l3)" }}>Used / Approved</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#6ec98d", marginTop: 2 }}>
+                      ₹{(viewingContractor.usedBudget || 0).toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{ padding: "10px 8px", background: "#101625", borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div style={{ fontSize: 11, color: "var(--tx-l3)" }}>Remaining</div>
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: ((viewingContractor.allocatedBudget || 0) - (viewingContractor.usedBudget || 0)) < 15000 ? "#e8835c" : "#7aadda",
+                        marginTop: 2,
+                      }}
+                    >
+                      ₹{Math.max(0, (viewingContractor.allocatedBudget || 0) - (viewingContractor.usedBudget || 0)).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: "16px 24px",
+                background: "rgba(10,14,24,0.9)",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>
+                🔒 View-only directory profile (profile editing managed by contractor)
+              </div>
+              <button
+                className="btn btn-ghost"
+                style={{ padding: "8px 20px", fontSize: 13, borderColor: "rgba(255,255,255,0.15)" }}
+                onClick={() => setViewingContractor(null)}
+              >
+                Close Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Assigned Jobs Modal */}
+      {viewingJobs && (
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(3, 6, 14, 0.88)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setViewingJobs(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 680,
+              background: "linear-gradient(165deg, #131929 0%, #0d121d 100%)",
+              border: "1px solid rgba(201,168,76,0.35)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.92), 0 0 0 1px rgba(255,255,255,0.08)",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: "20px 24px",
+                background: "rgba(255,255,255,0.02)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div>
+                <div className="heading" style={{ fontSize: 18, fontWeight: 700, color: "var(--tx-l)" }}>
+                  Assigned Jobs — {viewingJobs.name}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>
+                  Active and completed municipal work orders dispatched to this firm
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingJobs(null)}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 8,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "var(--tx-l)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* List */}
+            <div style={{ padding: "22px 24px", overflowY: "auto" }}>
+              {complaints.filter(c => c.contractorId === viewingJobs.id || c.contractor === viewingJobs.name).length === 0 ? (
+                <div style={{ textAlign: "center", padding: "40px 0", color: "var(--tx-l3)" }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: "var(--tx-l2)" }}>No work orders currently assigned</div>
+                  <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 4 }}>
+                    New potholes can be assigned from the All Complaints panel.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {complaints
+                    .filter(c => c.contractorId === viewingJobs.id || c.contractor === viewingJobs.name)
+                    .map(job => (
+                      <div
+                        key={job.id}
+                        style={{
+                          padding: "14px 16px",
+                          borderRadius: 10,
+                          background: "#161d2f",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: 12,
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontWeight: 600, fontSize: 14, color: "var(--tx-l)" }}>{job.title}</span>
+                            <span style={{ fontSize: 11, color: "var(--gold2)", fontFamily: "monospace", padding: "2px 6px", background: "rgba(201,168,76,0.1)", borderRadius: 4 }}>
+                              #{job.id}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--tx-l2)", marginTop: 4 }}>
+                            📍 {job.area} · Budget: <strong style={{ color: "var(--tx-l)" }}>₹{(job.budget || 0).toLocaleString()}</strong>
+                          </div>
+                        </div>
+                        <SBadge s={job.status} />
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: "16px 24px",
+                background: "rgba(10,14,24,0.9)",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "flex-end",
+                flexShrink: 0,
+              }}
+            >
+              <button
+                className="btn btn-ghost"
+                style={{ padding: "8px 20px", fontSize: 13, borderColor: "rgba(255,255,255,0.15)" }}
+                onClick={() => setViewingJobs(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Onboard New Contractor Modal */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div className="modal-inner">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-                <div className="heading" style={{ fontSize: 20 }}>
-                  {editingContractor ? "Edit Contractor" : "Add New Contractor"}
-                </div>
+                <div className="heading" style={{ fontSize: 20 }}>Onboard New Contractor</div>
                 <button onClick={() => setShowAddModal(false)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, width: 32, height: 32, cursor: "pointer", color: "var(--tx-l3)", fontSize: 18 }}>×</button>
               </div>
 
-              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                <div><label>Company Name *</label><input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Sharma Constructions" required /></div>
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div><label>Company / Firm Name *</label><input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Hyderabad Roadways Pvt Ltd" required /></div>
+                <div><label>Contact Person</label><input type="text" value={formData.contactPerson} onChange={e => setFormData({ ...formData, contactPerson: e.target.value })} placeholder="e.g. Ramesh Reddy" /></div>
                 <div><label>Email Address *</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="contractor@company.com" required /></div>
                 <div><label>Phone Number *</label><input type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 9876543210" required /></div>
-                <div><label>Password</label><input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder={editingContractor ? "Leave blank to keep current password" : "Auto-generated password will be sent"} /></div>
-                <div><label>Allocated Budget (₹)</label><input type="number" value={formData.allocatedBudget} onChange={e => setFormData({ ...formData, allocatedBudget: e.target.value })} placeholder="e.g. 500000" min="0" /></div>
+                <div><label>Service Area / Zones</label><input type="text" value={formData.serviceArea} onChange={e => setFormData({ ...formData, serviceArea: e.target.value })} placeholder="e.g. North Zone, Sector 4" /></div>
+                <div><label>Specialization</label><input type="text" value={formData.specialization} onChange={e => setFormData({ ...formData, specialization: e.target.value })} placeholder="e.g. Bituminous Mix & Cold Asphalt" /></div>
+                <div><label>Initial Budget Allocation (₹)</label><input type="number" value={formData.allocatedBudget} onChange={e => setFormData({ ...formData, allocatedBudget: e.target.value })} placeholder="e.g. 100000" min="0" /></div>
                 
-                <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.14)", fontSize: 12, color: "var(--tx-l3)", lineHeight: 1.5 }}>
-                  📧 <strong>Email Notification:</strong> Login credentials will be automatically sent to {formData.email || 'contractor email address'}<br/>
-                  🔐 <strong>Password:</strong> {editingContractor ? 'Leave blank to keep current password' : 'Auto-generated secure password will be created'}<br/>
-                  🌐 <strong>Portal:</strong> Contractor will receive login URL with credentials<br/>
-                  ✅ <strong>Security:</strong> Contractor must change password after first login
-                </div>
-
-                <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 8 }}>
+                <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 10 }}>
                   <button type="button" className="btn btn-ghost" onClick={() => setShowAddModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-gold">
-                    {editingContractor ? "Update Contractor" : "Add Contractor"}
-                  </button>
+                  <button type="submit" className="btn btn-gold">Complete Onboarding</button>
                 </div>
               </form>
             </div>
@@ -2938,12 +3452,12 @@ function ActivityLogs({ auditLogs, contractors }) {
             <div style={{ width: 7, height: 7, borderRadius: "50%", background: log.flag ? "#e8835c" : typeColor[log.type] || "#7aadda", marginTop: 5, flexShrink: 0, boxShadow: log.flag ? "0 0 6px #e8835c60" : "none" }} />
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                <span style={{ fontWeight: 600, fontSize: 13 }}>{log.actor}</span>
-                {log.flag && <span className="badge b-reject" style={{ fontSize: 9.5 }}>⚑ FLAGGED</span>}
+                <span style={{ fontWeight: 600, fontSize: 14 }}>{log.actor}</span>
+                {log.flag && <span className="badge b-reject" style={{ fontSize: 10 }}>⚑ FLAGGED</span>}
               </div>
-              <div style={{ fontSize: 12.5, color: "var(--tx-l3)", lineHeight: 1.5 }}>{log.action}</div>
+              <div style={{ fontSize: 13, color: "var(--tx-l2)", lineHeight: 1.5 }}>{log.action}</div>
             </div>
-            <div style={{ fontSize: 11, color: "var(--tx-l3)", whiteSpace: "nowrap", flexShrink: 0 }}>{log.time}</div>
+            <div style={{ fontSize: 12, color: "var(--tx-l2)", whiteSpace: "nowrap", flexShrink: 0 }}>{log.time}</div>
           </div>
         ))}
       </div>
@@ -3033,53 +3547,100 @@ function PriorityQueue({ complaints, showToast, onUpdate }) {
 }
 
 // ─── CONTRACTOR DASHBOARD ──────────────────────────────────────────────────────
-function ContractorDashboard({ complaints, contractor }) {
-  const mine = complaints.filter(c => c.contractorId === contractor?.id);
-  const active = mine.filter(c => !["completed", "rejected"].includes(c.status));
-  const done = mine.filter(c => c.status === "completed");
-  const held = active.reduce((s, c) => s + (c.budget || 0), 0);
+function ContractorDashboard({ complaints, contractor, onNav, onUpdate, showToast }) {
+  const mine = complaints.filter(c => c.contractorId === contractor?.id || c.contractor === contractor?.name);
+  const pendingJobs = mine.filter(c => c.status === "assigned");
+  const inProgressJobs = mine.filter(c => ["in_progress", "in-progress"].includes(c.status));
+  const completedJobs = mine.filter(c => c.status === "completed");
+  const held = inProgressJobs.reduce((s, c) => s + (c.budget || 0), 0);
   
-  // Budget calculations - only use contractor's stored budget values
+  // Budget calculations - strictly scoped to this authenticated contractor
   const allocated = contractor?.allocatedBudget || 0;
   const used = contractor?.usedBudget || 0;
-  const remaining = Math.max(0, allocated - used); // Prevent negative
+  const remaining = Math.max(0, allocated - used);
   const budgetPercent = allocated > 0 ? (used / allocated * 100) : 0;
+
+  const handleStartWork = (task) => {
+    onUpdate?.(task.id, { 
+      status: "in_progress",
+      timeline: [...(task.timeline || []), {
+        action: "Contractor commenced on-site mobilization and repair",
+        actor: contractor?.name,
+        time: ts()
+      }]
+    }, {
+      actor: contractor?.name,
+      action: `Started repair work on ${task.id}`,
+      type: "contractor_progress"
+    });
+    showToast?.(`Started work on ${task.id}`, "success");
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12 }}>
-        <StatCard icon="≡" val={active.length} label="Active Tasks" accent="#7aadda" />
-        <StatCard icon="✓" val={done.length} label="Completed" accent="#6ec98d" />
-        <StatCard icon="⬢" val={`₹${Math.floor(held / 1000)}K`} label="Budget Held" accent="#e8c96a" />
-        <StatCard icon="💰" val={`₹${Math.floor(remaining / 1000)}K`} label="Budget Left" accent={remaining < 10000 ? "#e8835c" : "#6ec98d"} />
+      {/* Contractor Welcome & Overview Header */}
+      <div className="card" style={{ padding: "20px 24px", background: "linear-gradient(135deg, rgba(110,201,141,0.12), rgba(10,12,20,0.4))", border: "1px solid rgba(110,201,141,0.25)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14 }}>
+        <div>
+          <div className="heading" style={{ fontSize: 18, color: "var(--tx-l)", marginBottom: 4 }}>
+            {contractor?.name || "Contractor Portal"}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--tx-l2)" }}>
+            Authorized Municipal Infrastructure Contractor · Contact: {contractor?.contactPerson || "Lead Engineer"} ({contractor?.phone})
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button className="btn btn-gold btn-sm" onClick={() => onNav?.("tasks")}>
+            View All Tasks ({mine.length})
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => onNav?.("profile")}>
+            👤 Profile
+          </button>
+        </div>
+      </div>
+
+      {/* 4 Required KPI Metric Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 14 }}>
+        <StatCard icon="≡" val={mine.length} label="Total Assigned Jobs" accent="#7aadda" />
+        <StatCard icon="⏳" val={pendingJobs.length} label="Pending Jobs" accent="#e8c96a" />
+        <StatCard icon="⚙" val={inProgressJobs.length} label="In-Progress Jobs" accent="#7aadda" />
+        <StatCard icon="✓" val={completedJobs.length} label="Completed Jobs" accent="#6ec98d" />
       </div>
       
-      {/* Budget Status Card */}
+      {/* Budget & Financial Status Card */}
       {allocated > 0 && (
         <div className="card" style={{ padding: 22 }}>
-          <div className="heading" style={{ fontSize: 15, marginBottom: 16 }}>Budget Status</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div>
+              <div className="heading" style={{ fontSize: 15 }}>Authorized Municipal Budget</div>
+              <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>Scoped strictly to your assigned contract allocation</div>
+            </div>
+            {remaining < 10000 && (
+              <button className="btn btn-ghost btn-sm" onClick={() => onNav?.("expenses")} style={{ color: "#e8c96a", borderColor: "rgba(232,201,106,0.3)" }}>
+                Request Budget Expansion
+              </button>
+            )}
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
             <div style={{ textAlign: "center", padding: "14px", background: "rgba(110,201,141,0.08)", borderRadius: 10, border: "1px solid rgba(110,201,141,0.2)" }}>
-              <div style={{ fontSize: 11, color: "var(--tx-l3)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Allocated</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#6ec98d" }}>₹{(allocated / 1000).toFixed(1)}K</div>
+              <div style={{ fontSize: 11.5, color: "var(--tx-l2)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Allocated</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#6ec98d" }}>₹{(allocated / 1000).toFixed(1)}K</div>
             </div>
             <div style={{ textAlign: "center", padding: "14px", background: "rgba(232,201,106,0.08)", borderRadius: 10, border: "1px solid rgba(232,201,106,0.2)" }}>
-              <div style={{ fontSize: 11, color: "var(--tx-l3)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Used</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#e8c96a" }}>₹{(used / 1000).toFixed(1)}K</div>
+              <div style={{ fontSize: 11.5, color: "var(--tx-l2)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Used / Disbursed</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#e8c96a" }}>₹{(used / 1000).toFixed(1)}K</div>
             </div>
             <div style={{ textAlign: "center", padding: "14px", background: remaining < 10000 ? "rgba(232,131,92,0.08)" : "rgba(122,173,218,0.08)", borderRadius: 10, border: `1px solid ${remaining < 10000 ? "rgba(232,131,92,0.2)" : "rgba(122,173,218,0.2)"}` }}>
-              <div style={{ fontSize: 11, color: "var(--tx-l3)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Remaining</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: remaining < 10000 ? "#e8835c" : "#7aadda" }}>₹{(remaining / 1000).toFixed(1)}K</div>
+              <div style={{ fontSize: 11.5, color: "var(--tx-l2)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Remaining Balance</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: remaining < 10000 ? "#e8835c" : "#7aadda" }}>₹{(remaining / 1000).toFixed(1)}K</div>
             </div>
           </div>
           
           {/* Budget Progress Bar */}
           <div style={{ marginBottom: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 8 }}>
-              <span style={{ color: "var(--tx-l3)" }}>Budget Usage</span>
-              <span style={{ color: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d", fontWeight: 600 }}>
-                {budgetPercent.toFixed(1)}%
-              </span>
+              <span style={{ color: "var(--tx-l2)" }}>Budget Usage: {budgetPercent.toFixed(1)}%</span>
+              <span style={{ color: "var(--tx-l3)" }}>Active Work Held: ₹{held.toLocaleString()}</span>
             </div>
             <div className="pbar" style={{ height: 8 }}>
               <div className="pfill" style={{ 
@@ -3088,42 +3649,100 @@ function ContractorDashboard({ complaints, contractor }) {
               }} />
             </div>
           </div>
-          
-          {remaining < 10000 && (
-            <div style={{ padding: "10px 14px", background: "rgba(232,131,92,0.08)", borderRadius: 8, border: "1px solid rgba(232,131,92,0.2)", fontSize: 12, color: "#e8835c" }}>
-              ⚠️ Low budget! Submit a budget request if you need more funds.
-            </div>
-          )}
         </div>
       )}
 
+      {/* Assigned Work Orders & Activity List */}
       {!mine.length ? (
         <div className="card" style={{ padding: 44, textAlign: "center" }}>
           <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>≡</div>
-          <div style={{ color: "var(--tx-l3)", fontSize: 13, lineHeight: 1.6 }}>No tasks assigned yet.<br />Admin will assign jobs to your account.</div>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>No tasks currently assigned</div>
+          <div style={{ color: "var(--tx-l3)", fontSize: 13, lineHeight: 1.6 }}>Municipal administrators will assign road maintenance work orders to your firm.</div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }} className="stack-m">
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: 16 }} className="stack-m">
           <div className="card" style={{ padding: 22 }}>
-            <div className="heading" style={{ fontSize: 15, marginBottom: 16 }}>Assigned Tasks</div>
-            {mine.slice(0, 5).map(t => (
-              <div key={t.id} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: t.severity === "high" ? "#e8835c" : "#e8c96a", flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</div>
-                  <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 1 }}>₹{(t.budget || 0).toLocaleString()}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div>
+                <div className="heading" style={{ fontSize: 16 }}>Available Work Orders</div>
+                <div style={{ fontSize: 12, color: "var(--tx-l2)", marginTop: 2 }}>Immediate actionable tasks assigned to your firm</div>
+              </div>
+              <button className="btn btn-ghost btn-sm" onClick={() => onNav?.("tasks")}>
+                View All Tasks →
+              </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {mine.slice(0, 5).map(t => (
+                <div key={t.id} style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>{t.title}</span>
+                      <span style={{ fontSize: 11, color: "var(--gold2)", fontFamily: "monospace" }}>#{t.id}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--tx-l2)", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <span>📍 {t.area}</span>
+                      <span>•</span>
+                      <span>Budget: <strong style={{ color: "#6ec98d" }}>₹{(t.budget || t.cost || 0).toLocaleString()}</strong></span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <SBadge s={t.status} />
+                    {t.status === "assigned" && (
+                      <button className="btn btn-gold btn-sm" onClick={() => handleStartWork(t)} style={{ fontSize: 11 }}>
+                        Start Work →
+                      </button>
+                    )}
+                    {["in_progress", "in-progress"].includes(t.status) && (
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => onNav?.("expenses")} style={{ fontSize: 11 }}>
+                          + Expenses
+                        </button>
+                        <button className="btn btn-success btn-sm" onClick={() => onNav?.("complete")} style={{ fontSize: 11 }}>
+                          Submit Proof →
+                        </button>
+                      </div>
+                    )}
+                    {t.status === "completed" && (
+                      <span style={{ fontSize: 11, color: "#6ec98d", fontWeight: 600 }}>
+                        ✓ Evidence Submitted
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <SBadge s={t.status} />
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-          <div className="card" style={{ padding: 22 }}>
-            <div className="heading" style={{ fontSize: 15, marginBottom: 16 }}>Overview</div>
-            {[["Active Tasks", active.length, "#7aadda"], ["Completed", done.length, "#6ec98d"], ["Budget Held", "₹" + Math.floor(held / 1000) + "K", "#e8c96a"]].map(([l, v, c]) => (
-              <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: 13 }}>
-                <span style={{ color: "var(--tx-l3)" }}>{l}</span><span style={{ fontWeight: 700, color: c }}>{v}</span>
-              </div>
-            ))}
+
+          <div className="card" style={{ padding: 22, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div>
+              <div className="heading" style={{ fontSize: 15, marginBottom: 16 }}>Operational Overview</div>
+              {[
+                ["Assigned Jobs", mine.length, "#7aadda"],
+                ["Pending Start", pendingJobs.length, "#e8c96a"],
+                ["Currently Active", inProgressJobs.length, "#7aadda"],
+                ["Completed Repairs", completedJobs.length, "#6ec98d"],
+                ["Committed Funds", "₹" + Math.floor(held / 1000) + "K", "#e8c96a"]
+              ].map(([l, v, c]) => (
+                <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: 13 }}>
+                  <span style={{ color: "var(--tx-l2)" }}>{l}</span>
+                  <span style={{ fontWeight: 700, color: c }}>{v}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
+              <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center" }} onClick={() => onNav?.("tasks")}>
+                ≡ Manage All Assigned Jobs
+              </button>
+              <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center" }} onClick={() => onNav?.("expenses")}>
+                💰 Expenses & Budget Requests
+              </button>
+              <button className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "center" }} onClick={() => onNav?.("profile")}>
+                👤 Manage Profile
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -3155,8 +3774,8 @@ function ContractorTasks({ complaints, contractor, onUpdate, showToast }) {
           <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
             <div style={{ width: 42, height: 42, borderRadius: 11, background: t.severity === "high" ? "rgba(192,82,42,0.15)" : "rgba(201,168,76,0.1)", border: `1px solid ${t.severity === "high" ? "rgba(192,82,42,0.25)" : "rgba(201,168,76,0.18)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>◉</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="heading" style={{ fontSize: 14, fontWeight: 600 }}>{t.title}</div>
-              <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>⊞ {t.area} · Budget: <span style={{ color: "#6ec98d", fontWeight: 700 }}>₹{(t.budget || 0).toLocaleString()}</span></div>
+              <div className="heading" style={{ fontSize: 15, fontWeight: 600 }}>{t.title}</div>
+              <div style={{ fontSize: 13, color: "var(--tx-l2)", marginTop: 2 }}>⊞ {t.area} · Budget: <span style={{ color: "#6ec98d", fontWeight: 700 }}>₹{(t.budget || 0).toLocaleString()}</span></div>
             </div>
             <div style={{ display: "flex", gap: 6 }}><SevBadge s={t.severity} /><SBadge s={t.status} /></div>
             <button className="btn btn-ghost btn-sm" onClick={() => setExpanded(expanded === t.id ? null : t.id)}>Details</button>
@@ -3918,6 +4537,525 @@ function MarkComplete({ complaints, contractor, onUpdate, showToast }) {
   );
 }
 
+// ─── CITIZEN MY PROFILE ────────────────────────────────────────────────────────
+function CitizenProfile({ user, onUpdateProfile, showToast, complaints }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(user?.name || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [saving, setSaving] = useState(false);
+
+  const mine = (complaints || []).filter(c => c.reportedById === user?.id || c.reportedBy === user?.name || c.reportedBy === user?.email);
+  const resolved = mine.filter(c => c.status === "completed").length;
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      showToast("Full name cannot be empty", "error");
+      return;
+    }
+    if (phone && !/^\d{10}$/.test(phone.replace(/\D/g, ""))) {
+      showToast("Please enter a valid 10-digit phone number", "error");
+      return;
+    }
+    setSaving(true);
+    await onUpdateProfile({ name: name.trim(), phone: phone.trim() });
+    setSaving(false);
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setName(user?.name || "");
+    setPhone(user?.phone || "");
+    setEditing(false);
+  };
+
+  return (
+    <div style={{ maxWidth: 740, display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Profile Header Banner */}
+      <div className="card" style={{ padding: 26, background: "linear-gradient(135deg, rgba(122,173,218,0.12), rgba(10,12,20,0.4))", border: "1px solid rgba(122,173,218,0.25)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #7aadda, #3d5a7a)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 700, color: "#fff", border: "2px solid rgba(255,255,255,0.15)" }}>
+            {(name || "C").charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div className="heading" style={{ fontSize: 22, color: "var(--tx-l)", marginBottom: 4 }}>
+              {name || user?.name || "Citizen Account"}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span className="badge b-progress" style={{ fontSize: 11 }}>Citizen Account</span>
+              <span style={{ fontSize: 12.5, color: "var(--tx-l2)" }}>{user?.email}</span>
+            </div>
+          </div>
+        </div>
+
+        {!editing ? (
+          <button className="btn btn-gold btn-sm" onClick={() => setEditing(true)}>
+            ✏️ Edit Profile
+          </button>
+        ) : (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-ghost btn-sm" onClick={handleCancel} disabled={saving}>
+              Cancel
+            </button>
+            <button className="btn btn-gold btn-sm" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save Changes"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Profile Details Form & Read-Only Specs */}
+      <div className="card" style={{ padding: 26 }}>
+        <div className="heading" style={{ fontSize: 16, marginBottom: 18 }}>Personal Information & Security</div>
+        
+        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="stack-m">
+            <div>
+              <label>Full Name *</label>
+              {editing ? (
+                <input 
+                  type="text" 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  placeholder="Enter full name" 
+                  required 
+                />
+              ) : (
+                <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 14, fontWeight: 600 }}>
+                  {user?.name || "Not provided"}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label>Phone Number (SMS Notifications)</label>
+              {editing ? (
+                <input 
+                  type="tel" 
+                  value={phone} 
+                  onChange={e => setPhone(e.target.value)} 
+                  placeholder="10-digit mobile number" 
+                />
+              ) : (
+                <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 14 }}>
+                  {user?.phone ? `+91 ${user.phone}` : "No phone number added"}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="stack-m">
+            <div>
+              <label>Registered Email Address</label>
+              <div style={{ padding: "10px 14px", background: "rgba(0,0,0,0.25)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.05)", fontSize: 13.5, color: "var(--tx-l2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>{user?.email}</span>
+                <span style={{ fontSize: 11, color: "var(--tx-l3)" }}>🔒 Read-only</span>
+              </div>
+              <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4 }}>
+                Primary login identity verified with government civic portal.
+              </div>
+            </div>
+
+            <div>
+              <label>Account Registration Date</label>
+              <div style={{ padding: "10px 14px", background: "rgba(0,0,0,0.25)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.05)", fontSize: 13.5, color: "var(--tx-l2)" }}>
+                📅 {user?.createdAt || "12 Jan 2026"}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4 }}>
+                Citizen identity verified on Municipal Civic Infrastructure.
+              </div>
+            </div>
+          </div>
+
+          {editing && (
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <button type="button" className="btn btn-ghost" onClick={handleCancel} disabled={saving}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-gold" disabled={saving}>
+                {saving ? "Saving…" : "Save Changes"}
+              </button>
+            </div>
+          )}
+        </form>
+      </div>
+
+      {/* Citizen Civic Activity Highlights */}
+      <div className="card" style={{ padding: 26 }}>
+        <div className="heading" style={{ fontSize: 16, marginBottom: 16 }}>Civic Contribution Summary</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, textAlign: "center" }}>
+          <div style={{ padding: "16px 10px", background: "rgba(122,173,218,0.08)", borderRadius: 10, border: "1px solid rgba(122,173,218,0.2)" }}>
+            <div style={{ fontSize: 26, fontWeight: 700, color: "#7aadda" }}>{mine.length}</div>
+            <div style={{ fontSize: 11.5, color: "var(--tx-l2)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 4 }}>Total Reports Filed</div>
+          </div>
+          <div style={{ padding: "16px 10px", background: "rgba(110,201,141,0.08)", borderRadius: 10, border: "1px solid rgba(110,201,141,0.2)" }}>
+            <div style={{ fontSize: 26, fontWeight: 700, color: "#6ec98d" }}>{resolved}</div>
+            <div style={{ fontSize: 11.5, color: "var(--tx-l2)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 4 }}>Potholes Repaired</div>
+          </div>
+          <div style={{ padding: "16px 10px", background: "rgba(232,201,106,0.08)", borderRadius: 10, border: "1px solid rgba(232,201,106,0.2)" }}>
+            <div style={{ fontSize: 26, fontWeight: 700, color: "#e8c96a" }}>
+              {mine.length > 0 ? Math.round((resolved / mine.length) * 100) : 100}%
+            </div>
+            <div style={{ fontSize: 11.5, color: "var(--tx-l2)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 4 }}>Resolution Rate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CONTRACTOR MY PROFILE ────────────────────────────────────────────────────
+function ContractorProfile({ contractor, onUpdateProfile, showToast, complaints }) {
+  const [editing, setEditing] = useState(false);
+  const [contactPerson, setContactPerson] = useState(contractor?.contactPerson || "");
+  const [phone, setPhone] = useState(contractor?.phone || "");
+  const [serviceArea, setServiceArea] = useState(contractor?.serviceArea || "");
+  const [specialization, setSpecialization] = useState(contractor?.specialization || "");
+  const [saving, setSaving] = useState(false);
+
+  const myJobs = (complaints || []).filter(c => c.contractorId === contractor?.id || c.contractor === contractor?.name);
+  const completedJobs = myJobs.filter(c => c.status === "completed").length;
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (phone && !/^\d{10}$/.test(phone.replace(/\D/g, ""))) {
+      showToast("Please enter a valid 10-digit phone number", "error");
+      return;
+    }
+    setSaving(true);
+    await onUpdateProfile({
+      contactPerson: contactPerson.trim(),
+      phone: phone.trim(),
+      serviceArea: serviceArea.trim(),
+      specialization: specialization.trim(),
+    });
+    setSaving(false);
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setContactPerson(contractor?.contactPerson || "");
+    setPhone(contractor?.phone || "");
+    setServiceArea(contractor?.serviceArea || "");
+    setSpecialization(contractor?.specialization || "");
+    setEditing(false);
+  };
+
+  return (
+    <div style={{ maxWidth: 780, display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Contractor Header Banner */}
+      <div className="card" style={{ padding: 26, background: "linear-gradient(135deg, rgba(110,201,141,0.12), rgba(10,12,20,0.4))", border: "1px solid rgba(110,201,141,0.25)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: "linear-gradient(135deg, rgba(110,201,141,0.25), rgba(74,124,89,0.1))", border: "1px solid rgba(110,201,141,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, color: "#6ec98d" }}>
+            ◈
+          </div>
+          <div>
+            <div className="heading" style={{ fontSize: 22, color: "var(--tx-l)", marginBottom: 4 }}>
+              {contractor?.name}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span className="badge b-done" style={{ fontSize: 11 }}>Verified Municipal Contractor</span>
+              <span style={{ fontSize: 12.5, color: "var(--tx-l2)" }}>ID: {contractor?.id}</span>
+            </div>
+          </div>
+        </div>
+
+        {!editing ? (
+          <button className="btn btn-gold btn-sm" onClick={() => setEditing(true)}>
+            ✏️ Edit Operational Details
+          </button>
+        ) : (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-ghost btn-sm" onClick={handleCancel} disabled={saving}>
+              Cancel
+            </button>
+            <button className="btn btn-gold btn-sm" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save Changes"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Official Registry Overview (View-Only / Administrative) */}
+      <div className="card" style={{ padding: 26 }}>
+        <div className="heading" style={{ fontSize: 16, marginBottom: 16 }}>Municipal Accreditation & Financial Overview</div>
+        
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 18 }} className="stack-m">
+          <div>
+            <label>Registered Company Name</label>
+            <div style={{ padding: "10px 14px", background: "rgba(0,0,0,0.25)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 14, fontWeight: 700, color: "var(--tx-l)" }}>
+              {contractor?.name}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4 }}>
+              🔒 Controlled by Municipal Infrastructure Authority.
+            </div>
+          </div>
+
+          <div>
+            <label>Registered Contractor Email</label>
+            <div style={{ padding: "10px 14px", background: "rgba(0,0,0,0.25)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 14, color: "var(--tx-l2)" }}>
+              {contractor?.email}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4 }}>
+              Official administrative notification endpoint.
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, textAlign: "center" }}>
+          <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ fontSize: 11, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Allocated Budget</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "#6ec98d", marginTop: 4 }}>₹{(contractor?.allocatedBudget || 0).toLocaleString()}</div>
+          </div>
+          <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ fontSize: 11, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Used / Disbursed</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "#e8c96a", marginTop: 4 }}>₹{(contractor?.usedBudget || 0).toLocaleString()}</div>
+          </div>
+          <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ fontSize: 11, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Completed Work</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "#7aadda", marginTop: 4 }}>{completedJobs} / {myJobs.length}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Editable Contractor Profile Fields */}
+      <div className="card" style={{ padding: 26 }}>
+        <div className="heading" style={{ fontSize: 16, marginBottom: 18 }}>Operational & Contact Details</div>
+
+        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="stack-m">
+            <div>
+              <label>Contact Person / Lead Representative</label>
+              {editing ? (
+                <input 
+                  type="text" 
+                  value={contactPerson} 
+                  onChange={e => setContactPerson(e.target.value)} 
+                  placeholder="e.g. Rajesh Varma" 
+                />
+              ) : (
+                <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 14, fontWeight: 600 }}>
+                  {contractor?.contactPerson || "Lead Engineer"}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label>Operational Dispatch Phone Number</label>
+              {editing ? (
+                <input 
+                  type="tel" 
+                  value={phone} 
+                  onChange={e => setPhone(e.target.value)} 
+                  placeholder="10-digit mobile number" 
+                />
+              ) : (
+                <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 14 }}>
+                  📱 +91 {contractor?.phone}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label>Service Area & Operational Zones</label>
+            {editing ? (
+              <input 
+                type="text" 
+                value={serviceArea} 
+                onChange={e => setServiceArea(e.target.value)} 
+                placeholder="e.g. East Zone (Koramangala, Indiranagar, HSR Layout)" 
+              />
+            ) : (
+              <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 13.5, color: "var(--tx-l2)" }}>
+                📍 {contractor?.serviceArea || "Municipal-wide Road Restoration Services"}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label>Specialization & Technical Capabilities</label>
+            {editing ? (
+              <input 
+                type="text" 
+                value={specialization} 
+                onChange={e => setSpecialization(e.target.value)} 
+                placeholder="e.g. Bituminous Pavements & Emergency Surface Restoration" 
+              />
+            ) : (
+              <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 13.5, color: "var(--tx-l2)" }}>
+                🛠️ {contractor?.specialization || "Bituminous & Concrete Pavement Maintenance"}
+              </div>
+            )}
+          </div>
+
+          {editing && (
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <button type="button" className="btn btn-ghost" onClick={handleCancel} disabled={saving}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-gold" disabled={saving}>
+                {saving ? "Saving…" : "Save Changes"}
+              </button>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── ADMIN MY PROFILE ─────────────────────────────────────────────────────────
+function AdminProfile({ user, onUpdateProfile, showToast }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(user?.name || "Gov Admin");
+  const [phone, setPhone] = useState(user?.phone || "0863-2345678");
+  const [department, setDepartment] = useState(user?.department || "Urban Roads & Infrastructure Directorate");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      showToast("Officer name cannot be empty", "error");
+      return;
+    }
+    setSaving(true);
+    await onUpdateProfile({
+      name: name.trim(),
+      phone: phone.trim(),
+      department: department.trim(),
+    });
+    setSaving(false);
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setName(user?.name || "Gov Admin");
+    setPhone(user?.phone || "0863-2345678");
+    setDepartment(user?.department || "Urban Roads & Infrastructure Directorate");
+    setEditing(false);
+  };
+
+  return (
+    <div style={{ maxWidth: 740, display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Admin Profile Header */}
+      <div className="card" style={{ padding: 26, background: "linear-gradient(135deg, rgba(201,168,76,0.12), rgba(10,12,20,0.4))", border: "1px solid rgba(201,168,76,0.25)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: "linear-gradient(135deg, #c9a84c, #8a6c28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 700, color: "#fff" }}>
+            🏛️
+          </div>
+          <div>
+            <div className="heading" style={{ fontSize: 22, color: "var(--tx-l)", marginBottom: 4 }}>
+              {name}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span className="badge b-pending" style={{ fontSize: 11 }}>Government Administrator</span>
+              <span style={{ fontSize: 12.5, color: "var(--tx-l2)" }}>{user?.email}</span>
+            </div>
+          </div>
+        </div>
+
+        {!editing ? (
+          <button className="btn btn-gold btn-sm" onClick={() => setEditing(true)}>
+            ✏️ Edit Officer Profile
+          </button>
+        ) : (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-ghost btn-sm" onClick={handleCancel} disabled={saving}>
+              Cancel
+            </button>
+            <button className="btn btn-gold btn-sm" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save Changes"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Admin Details Form */}
+      <div className="card" style={{ padding: 26 }}>
+        <div className="heading" style={{ fontSize: 16, marginBottom: 18 }}>Administrator Dossier & Credentials</div>
+
+        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="stack-m">
+            <div>
+              <label>Officer Name *</label>
+              {editing ? (
+                <input 
+                  type="text" 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  required 
+                />
+              ) : (
+                <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 14, fontWeight: 600 }}>
+                  {name}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label>Official Desk Phone</label>
+              {editing ? (
+                <input 
+                  type="text" 
+                  value={phone} 
+                  onChange={e => setPhone(e.target.value)} 
+                />
+              ) : (
+                <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 14 }}>
+                  ☎️ {phone}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label>Government Department / Directorate</label>
+            {editing ? (
+              <input 
+                type="text" 
+                value={department} 
+                onChange={e => setDepartment(e.target.value)} 
+              />
+            ) : (
+              <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.06)", fontSize: 13.5, color: "var(--tx-l2)" }}>
+                🏛️ {department}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="stack-m">
+            <div>
+              <label>Official Government Email</label>
+              <div style={{ padding: "10px 14px", background: "rgba(0,0,0,0.25)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.05)", fontSize: 13.5, color: "var(--tx-l2)" }}>
+                {user?.email}
+              </div>
+            </div>
+
+            <div>
+              <label>Authorization Clearance</label>
+              <div style={{ padding: "10px 14px", background: "rgba(0,0,0,0.25)", borderRadius: "var(--rsm)", border: "1px solid rgba(255,255,255,0.05)", fontSize: 13.5, color: "#6ec98d", fontWeight: 600 }}>
+                🛡️ Tier-1 Municipal Clearance
+              </div>
+            </div>
+          </div>
+
+          {editing && (
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <button type="button" className="btn btn-ghost" onClick={handleCancel} disabled={saving}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-gold" disabled={saving}>
+                {saving ? "Saving…" : "Save Changes"}
+              </button>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── ROOT APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [authed, setAuthed] = useState(false);
@@ -3977,6 +5115,44 @@ export default function App() {
     showToast("Demo environment reset with fresh connected records", "success");
   };
 
+  const handleUpdateProfile = async (updates) => {
+    // 1. Backend sync attempt with auth token
+    try {
+      const token = localStorage.getItem("smartroad_token");
+      await fetch("http://localhost:8000/api/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(updates),
+      });
+    } catch {
+      // Backend may be offline in demo mode, continue local persistence
+    }
+
+    // 2. Update currentUser state
+    const updatedUser = { ...currentUser, ...updates };
+    setCurrentUser(updatedUser);
+
+    // 3. Update smartroad_users in localStorage
+    try {
+      const storedUsers = JSON.parse(localStorage.getItem("smartroad_users") || "[]");
+      const nextUsers = storedUsers.map(u => (u.id === updatedUser.id || u.email === updatedUser.email) ? { ...u, ...updates } : u);
+      localStorage.setItem("smartroad_users", JSON.stringify(nextUsers));
+    } catch {}
+
+    // 4. If contractor, also sync to appData.contractors so Admin Contractor Directory stays updated
+    if (role === "contractor") {
+      setAppData(d => ({
+        ...d,
+        contractors: d.contractors.map(c => (c.id === updatedUser.id || c.email === updatedUser.email) ? { ...c, ...updates } : c),
+      }));
+    }
+
+    showToast("Profile updated successfully", "success");
+  };
+
   const { complaints, auditLogs, contractors, budgetConfig } = appData;
 
   const renderPage = () => {
@@ -3984,9 +5160,11 @@ export default function App() {
       if (page === "dashboard") return <UserDashboard complaints={complaints} user={currentUser} onNav={setPage} />;
       if (page === "report") return <ReportPothole user={currentUser} onAdd={addComplaint} showToast={showToast} budgetConfig={budgetConfig} />;
       if (page === "myreports") return <MyComplaints complaints={complaints} user={currentUser} onUpdate={updateComplaint} showToast={showToast} />;
+      if (page === "profile") return <CitizenProfile user={currentUser} onUpdateProfile={handleUpdateProfile} showToast={showToast} complaints={complaints} />;
       if (page === "map") return <div><div className="heading-i" style={{ fontSize: 24, marginBottom: 18 }}>City Pothole Map</div><MapView height={500} complaints={complaints} showFilters /></div>;
       if (page === "route") return <RouteCheck complaints={complaints} />;
       if (page === "notifs") return <Notifications complaints={complaints} user={currentUser} />;
+      return <UserDashboard complaints={complaints} user={currentUser} onNav={setPage} />;
     }
     if (role === "admin") {
       if (page === "dashboard") return <AdminDashboard complaints={complaints} auditLogs={auditLogs} budgetConfig={budgetConfig} />;
@@ -3997,15 +5175,19 @@ export default function App() {
       if (page === "activity") return <ActivityLogs auditLogs={auditLogs} contractors={contractors} />;
       if (page === "priority") return <PriorityQueue complaints={complaints} showToast={showToast} onUpdate={updateComplaint} />;
       if (page === "notifications") return <AdminNotifications complaints={complaints} showToast={showToast} />;
+      if (page === "profile") return <AdminProfile user={currentUser} onUpdateProfile={handleUpdateProfile} showToast={showToast} />;
+      return <AdminDashboard complaints={complaints} auditLogs={auditLogs} budgetConfig={budgetConfig} />;
     }
     if (role === "contractor") {
-      const fullContractor = contractors.find(c => c.id === currentUser?.id) || currentUser;
-      if (page === "dashboard") return <ContractorDashboard complaints={complaints} contractor={fullContractor} />;
+      const fullContractor = contractors.find(c => c.id === currentUser?.id || c.email === currentUser?.email) || currentUser;
+      if (page === "dashboard") return <ContractorDashboard complaints={complaints} contractor={fullContractor} onNav={setPage} onUpdate={updateComplaint} showToast={showToast} />;
       if (page === "tasks") return <ContractorTasks complaints={complaints} contractor={fullContractor} onUpdate={updateComplaint} showToast={showToast} />;
       if (page === "expenses") return <ExpenseSubmit complaints={complaints} contractor={fullContractor} onUpdate={updateComplaint} showToast={showToast} budgetConfig={budgetConfig} />;
       if (page === "budget-request") return <BudgetRequest contractor={fullContractor} onUpdateContractor={updateContractor} showToast={showToast} />;
       if (page === "complete") return <MarkComplete complaints={complaints} contractor={fullContractor} onUpdate={updateComplaint} showToast={showToast} />;
-      if (page === "map") return <div><div className="heading-i" style={{ fontSize: 24, marginBottom: 18 }}>My Site Map</div><MapView height={500} complaints={complaints.filter(c => c.contractorId === currentUser?.id)} /></div>;
+      if (page === "profile") return <ContractorProfile contractor={fullContractor} onUpdateProfile={handleUpdateProfile} showToast={showToast} complaints={complaints} />;
+      if (page === "map") return <div><div className="heading-i" style={{ fontSize: 24, marginBottom: 18 }}>My Site Map</div><MapView height={500} complaints={complaints.filter(c => c.contractorId === fullContractor?.id)} /></div>;
+      return <ContractorDashboard complaints={complaints} contractor={fullContractor} onNav={setPage} onUpdate={updateComplaint} showToast={showToast} />;
     }
     return null;
   };
@@ -4040,7 +5222,7 @@ export default function App() {
         <div style={{ display: "flex", height: "100vh", position: "relative", zIndex: 1 }}>
           <Sidebar role={role} page={page} onNav={setPage} collapsed={collapsed} toggle={() => setCollapsed(!collapsed)} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
-            <TopBar page={page} user={currentUser} onLogout={handleLogout} onResetDemo={handleResetDemo} />
+            <TopBar page={page} user={currentUser} onLogout={handleLogout} onResetDemo={handleResetDemo} onNav={setPage} />
             <div style={{ flex: 1, overflowY: "auto", padding: "22px 26px" }} className="fu">
               {renderPage()}
             </div>

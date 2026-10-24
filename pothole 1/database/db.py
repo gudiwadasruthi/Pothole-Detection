@@ -96,6 +96,23 @@ def init_db(db_path: Path | None = None) -> None:
             conn.execute("ALTER TABLE potholes ADD COLUMN lat REAL")
         if "lon" not in cols:
             conn.execute("ALTER TABLE potholes ADD COLUMN lon REAL")
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_profiles (
+                user_id TEXT PRIMARY KEY,
+                role TEXT NOT NULL,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                phone TEXT,
+                contact_person TEXT,
+                service_area TEXT,
+                specialization TEXT,
+                department TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
         conn.commit()
     finally:
         conn.close()
@@ -305,3 +322,80 @@ def clear_all_records(db_path: Path | None = None) -> int:
         return int(cur.rowcount if cur.rowcount is not None else 0)
     finally:
         conn.close()
+
+
+def get_user_profile(user_id: str, db_path: Path | None = None) -> dict[str, Any] | None:
+    init_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        row = conn.execute("SELECT * FROM user_profiles WHERE user_id = ?", (user_id,)).fetchone()
+        if not row:
+            return None
+        return dict(row)
+    finally:
+        conn.close()
+
+
+def upsert_user_profile(
+    *,
+    user_id: str,
+    role: str,
+    name: str,
+    email: str,
+    phone: str | None = None,
+    contact_person: str | None = None,
+    service_area: str | None = None,
+    specialization: str | None = None,
+    department: str | None = None,
+    created_at: str | None = None,
+    updated_at: str,
+    db_path: Path | None = None,
+) -> dict[str, Any]:
+    init_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        existing = conn.execute("SELECT * FROM user_profiles WHERE user_id = ?", (user_id,)).fetchone()
+        if existing:
+            conn.execute(
+                """
+                UPDATE user_profiles
+                SET name = ?, phone = ?, contact_person = ?, service_area = ?, specialization = ?, department = ?, updated_at = ?
+                WHERE user_id = ?
+                """,
+                (
+                    name,
+                    phone or existing["phone"],
+                    contact_person or existing["contact_person"],
+                    service_area or existing["service_area"],
+                    specialization or existing["specialization"],
+                    department or existing["department"],
+                    updated_at,
+                    user_id,
+                ),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO user_profiles (user_id, role, name, email, phone, contact_person, service_area, specialization, department, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user_id,
+                    role,
+                    name,
+                    email,
+                    phone,
+                    contact_person,
+                    service_area,
+                    specialization,
+                    department,
+                    created_at or updated_at,
+                    updated_at,
+                ),
+            )
+        conn.commit()
+        updated_row = conn.execute("SELECT * FROM user_profiles WHERE user_id = ?", (user_id,)).fetchone()
+        return dict(updated_row) if updated_row else {}
+    finally:
+        conn.close()
+
