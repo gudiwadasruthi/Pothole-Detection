@@ -2,7 +2,16 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import SmartRoadLandingPage from "./LandingPage.jsx";
-import { DEMO_CREDENTIALS, CONTRACTOR_ACCOUNTS, getFreshDemoData } from "./demoData.js";
+import { DEMO_CREDENTIALS, CONTRACTOR_ACCOUNTS, getFreshDemoData, SAMPLE_POTHOLE_IMAGES } from "./demoData.js";
+
+// Helper to resolve pothole photo paths reliably across data URLs, dataset samples, and uploads
+export function getPhotoSrc(photo) {
+  if (!photo) return "";
+  if (photo.startsWith("data:") || photo.startsWith("blob:") || photo.startsWith("/") || photo.startsWith("http")) {
+    return photo;
+  }
+  return `/uploads/${photo}`;
+}
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const ADMIN_CREDS = DEMO_CREDENTIALS.admin;
@@ -23,6 +32,14 @@ const initialData = () => {
             pendingBudgetRequests: c.pendingBudgetRequests ?? []
           }));
         }
+        // Ensure real dataset photos are assigned to demo complaints
+        parsed.complaints = parsed.complaints.map((comp, idx) => {
+          if (!comp.photo || comp.photo.includes('/samples/sample')) {
+            const pIdx = (idx % 6) + 1;
+            return { ...comp, photo: `/potholes/pothole_${pIdx}.jpg` };
+          }
+          return comp;
+        });
         return parsed;
       }
     } 
@@ -399,6 +416,205 @@ function StatCard({ icon, val, label, accent, sub }) {
       <div className="heading" style={{ fontSize: 30, fontWeight: 600, color: "var(--tx-l)", lineHeight: 1, marginBottom: 6 }}>{val}</div>
       <div style={{ fontSize: 12, color: "var(--tx-l2)", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600 }}>{label}</div>
       {sub && <div style={{ fontSize: 13, color: "var(--tx-l2)", marginTop: 5 }}>{sub}</div>}
+    </div>
+  );
+}
+
+// ─── POTHOLE PHOTO PANE (UNCUT, FULL VISIBILITY ON RIGHT SIDE) ─────────────────
+function PotholePhotoPane({
+  photo,
+  completionPhoto,
+  activeTab = "initial",
+  onTabChange,
+  onFullscreen,
+  title = "Ground Evidence Photograph",
+  badgeText = "100% Uncropped View"
+}) {
+  const currentPhoto = activeTab === "completion" && completionPhoto ? completionPhoto : photo;
+  const photoSrc = getPhotoSrc(currentPhoto);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
+      <div
+        style={{
+          padding: 16,
+          borderRadius: 14,
+          background: "#141b2c",
+          border: "1px solid rgba(255,255,255,0.08)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          flex: 1
+        }}
+      >
+        {/* Photo Header / Tabs */}
+        {completionPhoto ? (
+          <div style={{ display: "flex", gap: 6, padding: 4, background: "#090d18", borderRadius: 8 }}>
+            <button
+              type="button"
+              onClick={() => onTabChange && onTabChange("initial")}
+              style={{
+                flex: 1,
+                padding: "7px 10px",
+                borderRadius: 6,
+                fontSize: 12,
+                fontWeight: 600,
+                background: activeTab === "initial" ? "rgba(201,168,76,0.18)" : "transparent",
+                color: activeTab === "initial" ? "var(--gold)" : "var(--tx-l3)",
+                border: activeTab === "initial" ? "1px solid var(--gold)" : "1px solid transparent",
+                cursor: "pointer",
+                transition: "all 0.2s ease"
+              }}
+            >
+              📸 Initial Damage
+            </button>
+            <button
+              type="button"
+              onClick={() => onTabChange && onTabChange("completion")}
+              style={{
+                flex: 1,
+                padding: "7px 10px",
+                borderRadius: 6,
+                fontSize: 12,
+                fontWeight: 600,
+                background: activeTab === "completion" ? "rgba(110,201,141,0.18)" : "transparent",
+                color: activeTab === "completion" ? "#6ec98d" : "var(--tx-l3)",
+                border: activeTab === "completion" ? "1px solid #6ec98d" : "1px solid transparent",
+                cursor: "pointer",
+                transition: "all 0.2s ease"
+              }}
+            >
+              ✓ Repair Completion
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gold2)", textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
+              <span>📸</span> {title}
+            </div>
+            <span style={{ fontSize: 10.5, color: "var(--tx-l2)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", padding: "2px 8px", borderRadius: 6, fontWeight: 500 }}>
+              {badgeText}
+            </span>
+          </div>
+        )}
+
+        {/* The Photo Container - objectFit: contain ensures NO CUTTING UP OR DOWN */}
+        <div
+          style={{
+            flex: 1,
+            minHeight: 360,
+            maxHeight: 460,
+            background: "#070a13",
+            borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.09)",
+            boxShadow: "inset 0 0 30px rgba(0,0,0,0.85)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            position: "relative",
+            padding: 10
+          }}
+        >
+          {photoSrc ? (
+            <img
+              src={photoSrc}
+              alt="Pothole"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                width: "auto",
+                height: "auto",
+                objectFit: "contain",
+                display: "block",
+                borderRadius: 6
+              }}
+              onError={e => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--tx-l3); font-size: 13px;">📷 Photo unavailable</div>';
+              }}
+            />
+          ) : (
+            <div style={{ textAlign: "center", color: "var(--tx-l3)", fontSize: 13, padding: 30 }}>
+              <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.4 }}>📷</div>
+              No photo attached to this report
+            </div>
+          )}
+        </div>
+
+        {/* Photo Footer Actions & Metadata */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: "var(--tx-l3)" }}>
+            {activeTab === "completion" ? (
+              <span style={{ color: "#6ec98d" }}>✓ Geo-verified completion evidence</span>
+            ) : (
+              <span>Authentic road photograph · Full aspect preserved</span>
+            )}
+          </div>
+          {photoSrc && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: 11, padding: "5px 12px" }}
+              onClick={() => onFullscreen && onFullscreen(photoSrc)}
+            >
+              🔍 Fullscreen Lightbox
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── FULLSCREEN LIGHTBOX MODAL ────────────────────────────────────────────────
+function FullscreenLightboxModal({ src, onClose }) {
+  if (!src) return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        background: "rgba(3, 5, 12, 0.96)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        cursor: "zoom-out"
+      }}
+      onClick={onClose}
+    >
+      <div style={{ position: "absolute", top: 20, right: 24, display: "flex", gap: 12, zIndex: 10000 }}>
+        <button
+          onClick={onClose}
+          className="btn btn-ghost"
+          style={{ color: "#fff", borderColor: "rgba(255,255,255,0.3)", padding: "7px 18px", fontSize: 13 }}
+        >
+          ✕ Close Preview
+        </button>
+      </div>
+
+      <img
+        src={src}
+        alt="Pothole Fullscreen"
+        style={{
+          maxWidth: "92vw",
+          maxHeight: "88vh",
+          objectFit: "contain",
+          borderRadius: 8,
+          boxShadow: "0 25px 80px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.15)",
+          cursor: "default"
+        }}
+        onClick={e => e.stopPropagation()}
+      />
+
+      <div style={{ position: "absolute", bottom: 20, color: "var(--tx-l3)", fontSize: 12, background: "rgba(0,0,0,0.65)", padding: "6px 16px", borderRadius: 20 }}>
+        Click outside or press Close to dismiss
+      </div>
     </div>
   );
 }
@@ -1065,6 +1281,10 @@ function TopBar({ page, user, onLogout, onResetDemo, onNav }) {
 // ─── USER DASHBOARD ───────────────────────────────────────────────────────────
 function UserDashboard({ complaints, user, onNav }) {
   const mine = complaints.filter(c => c.reportedById === user?.id || c.reportedBy === user?.name || c.reportedBy === user?.email);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [activePhotoTab, setActivePhotoTab] = useState("initial");
+  const [fullscreenPhoto, setFullscreenPhoto] = useState(null);
+
   const counts = {
     total: mine.length,
     pending: mine.filter(c => c.status === "pending").length,
@@ -1134,17 +1354,47 @@ function UserDashboard({ complaints, user, onNav }) {
               {mine.slice(0, 4).map(c => {
                 const step = getStepIndex(c.status);
                 return (
-                  <div key={c.id} style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--tx-l)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</span>
-                          <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace", flexShrink: 0 }}>{c.id}</span>
-                        </div>
-                        <div style={{ fontSize: 12, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <span>📍 {c.area}</span>
-                          <span>•</span>
-                          <span>📅 {c.date}</span>
+                  <div
+                    key={c.id}
+                    className="hover-lift"
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 10,
+                      background: "rgba(255,255,255,0.03)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease"
+                    }}
+                    onClick={() => {
+                      setSelectedComplaint(c);
+                      setActivePhotoTab("initial");
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+                        {c.photo && (
+                          <div style={{ width: 54, height: 54, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: "1px solid rgba(255,255,255,0.1)", background: "#080c16", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <img
+                              src={getPhotoSrc(c.photo)}
+                              alt="Pothole"
+                              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                              onError={e => { e.target.style.display = 'none'; }}
+                            />
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                            <span style={{ fontWeight: 600, fontSize: 14, color: "var(--tx-l)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</span>
+                            <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace", flexShrink: 0 }}>#{c.id}</span>
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                            <span>📍 {c.area}</span>
+                            <span>•</span>
+                            <span>📅 {c.date}</span>
+                          </div>
                         </div>
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
@@ -1166,8 +1416,16 @@ function UserDashboard({ complaints, user, onNav }) {
                     </div>
 
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => onNav("myreports")} style={{ fontSize: 11, padding: "4px 10px" }}>
-                        View Report Details →
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ fontSize: 11, padding: "4px 10px" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedComplaint(c);
+                          setActivePhotoTab("initial");
+                        }}
+                      >
+                        Inspect Dossier ↗
                       </button>
                     </div>
                   </div>
@@ -1196,6 +1454,205 @@ function UserDashboard({ complaints, user, onNav }) {
           </div>
         </div>
       </div>
+
+      {/* POP-UP MODAL: Quick Pothole Dossier with Left Content & Right Full-Visibility Picture */}
+      {selectedComplaint && (
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(3, 6, 14, 0.9)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setSelectedComplaint(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 960,
+              background: "linear-gradient(165deg, #131929 0%, #0d121d 100%)",
+              border: "1px solid rgba(201,168,76,0.35)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.08)",
+              maxHeight: "92vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "18px 26px",
+                background: "rgba(255,255,255,0.02)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: "rgba(201,168,76,0.15)",
+                    border: "1px solid rgba(201,168,76,0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    color: "var(--gold2)",
+                  }}
+                >
+                  ◈
+                </div>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span className="heading" style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)" }}>
+                      Pothole Dossier
+                    </span>
+                    <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace" }}>
+                      #{selectedComplaint.id}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>
+                    Reported on {selectedComplaint.date}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <SBadge s={selectedComplaint.status} />
+                <SevBadge s={selectedComplaint.severity} />
+                <button
+                  onClick={() => setSelectedComplaint(null)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "var(--tx-l)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 16,
+                    fontWeight: 600,
+                    marginLeft: 6
+                  }}
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: 2 Columns */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.05fr 1fr",
+                gap: 22,
+                padding: "22px 26px",
+                overflowY: "auto",
+                flex: 1
+              }}
+              className="stack-m"
+            >
+              {/* LEFT COLUMN: Content */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div style={{ padding: "15px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gold2)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                    Grievance Heading & Location
+                  </div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)", marginBottom: 8 }}>
+                    {selectedComplaint.title}
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>📍</span>
+                    <span>{selectedComplaint.area}</span>
+                  </div>
+                  {(selectedComplaint.lat && selectedComplaint.lng) && (
+                    <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4, fontFamily: "monospace" }}>
+                      Geo-coordinates: {selectedComplaint.lat}, {selectedComplaint.lng}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ padding: "14px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                    Hazard Description & Notes
+                  </div>
+                  <div style={{ fontSize: 13.5, color: "var(--tx-l)", lineHeight: 1.6 }}>
+                    {selectedComplaint.desc || "Road pavement hazard reported via citizen portal."}
+                  </div>
+                </div>
+
+                {selectedComplaint.contractor && (
+                  <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>Assigned Maintenance Unit:</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--gold2)" }}>{selectedComplaint.contractor}</div>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                  <button className="btn btn-gold btn-sm" onClick={() => { setSelectedComplaint(null); onNav("myreports"); }}>
+                    Open in Full Reports View →
+                  </button>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: Photo */}
+              <PotholePhotoPane
+                photo={selectedComplaint.photo}
+                completionPhoto={selectedComplaint.completionPhoto}
+                activeTab={activePhotoTab}
+                onTabChange={setActivePhotoTab}
+                onFullscreen={setFullscreenPhoto}
+                title="Ground Evidence Photo (Full View)"
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: "14px 26px",
+                background: "rgba(10,14,24,0.9)",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>
+                Citizen Grievance Monitoring & Road Safety
+              </div>
+              <button
+                className="btn btn-ghost"
+                style={{ padding: "8px 22px", fontSize: 13, borderColor: "rgba(255,255,255,0.15)" }}
+                onClick={() => setSelectedComplaint(null)}
+              >
+                Close Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Photo Lightbox Modal */}
+      <FullscreenLightboxModal src={fullscreenPhoto} onClose={() => setFullscreenPhoto(null)} />
     </div>
   );
 }
@@ -1356,8 +1813,8 @@ function ReportPothole({ user, onAdd, showToast }) {
               }} />
               {form.photo ? (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <img src={form.photo} alt="Preview" style={{ height: 140, width: "100%", borderRadius: 8, objectFit: "cover", marginBottom: 12 }} />
-                  <span style={{ fontSize: 13, color: "var(--gold)" }}>Tap to change photo</span>
+                  <img src={getPhotoSrc(form.photo)} alt="Preview" style={{ height: 160, width: "100%", borderRadius: 8, objectFit: "cover", marginBottom: 12 }} />
+                  <span style={{ fontSize: 13, color: "var(--gold)" }}>Tap to change or select another photo</span>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center", opacity: 0.7 }}>
@@ -1367,6 +1824,63 @@ function ReportPothole({ user, onAdd, showToast }) {
                 </div>
               )}
             </label>
+
+            {/* Quick-Select from Public Pothole Dataset */}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--gold2)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>📂</span> Or Select Real Pothole from Public Dataset:
+                </span>
+                <span style={{ fontSize: 11, color: "var(--tx-l3)" }}>Click to autofill sample</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(135px, 1fr))", gap: 8 }}>
+                {SAMPLE_POTHOLE_IMAGES.map((sample) => {
+                  const isSelected = form.photo === sample.url;
+                  return (
+                    <div
+                      key={sample.id}
+                      onClick={async () => {
+                        setForm(prev => ({
+                          ...prev,
+                          photo: sample.url,
+                          title: prev.title ? prev.title : sample.title,
+                          area: prev.area ? prev.area : sample.area,
+                          desc: prev.desc ? prev.desc : sample.desc,
+                        }));
+                        try {
+                          const res = await fetch(sample.url);
+                          const blob = await res.blob();
+                          const file = new File([blob], `dataset_sample_${sample.id}.jpg`, { type: "image/jpeg" });
+                          setForm(prev => ({ ...prev, rawFile: file }));
+                        } catch(e) {}
+                        showToast(`Selected dataset photo: ${sample.title}`, "info");
+                      }}
+                      style={{
+                        padding: 7,
+                        borderRadius: 8,
+                        background: isSelected ? "rgba(201,168,76,0.18)" : "#131826",
+                        border: `1px solid ${isSelected ? "var(--gold)" : "rgba(255,255,255,0.08)"}`,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                      className="hover-lift"
+                    >
+                      <img
+                        src={sample.url}
+                        alt={sample.title}
+                        style={{ width: "100%", height: 64, objectFit: "cover", borderRadius: 6, marginBottom: 5 }}
+                      />
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--tx-l)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {sample.title}
+                      </div>
+                      <div style={{ fontSize: 10, color: sample.severity === "high" ? "#e8835c" : "#7aadda", textTransform: "uppercase", fontWeight: 700, marginTop: 2 }}>
+                        {sample.severity} Severity
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
           <div style={{ gridColumn: "1/-1" }}><label>Title *</label><input placeholder="e.g. Deep pothole near MG Road Junction" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
           <div><label>Area</label><input placeholder="e.g. Sector 12" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} /></div>
@@ -1406,19 +1920,30 @@ function ReportPothole({ user, onAdd, showToast }) {
 // ─── MY COMPLAINTS ─────────────────────────────────────────────────────────────
 function MyComplaints({ complaints, user, onUpdate, showToast }) {
   const mine = complaints.filter(c => c.reportedById === user?.id || c.reportedBy === user?.email || c.reportedBy === user?.name);
-  const [expanded, setExpanded] = useState(null);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [activePhotoTab, setActivePhotoTab] = useState("initial"); // "initial" | "completion"
+  const [fullscreenPhoto, setFullscreenPhoto] = useState(null);
   const [verifyModal, setVerifyModal] = useState(null);
   const [reason, setReason] = useState("");
 
   const handleVerify = (c, action) => {
     if (action === "accept") {
       onUpdate(c.id, { verified: "verified" }, { actor: user?.name, action: `Verified completion of ${c.id}`, type: "verify" });
+      if (selectedComplaint?.id === c.id) {
+        setSelectedComplaint(prev => ({ ...prev, verified: "verified" }));
+      }
       showToast("Solution accepted — marked complete", "success");
     } else if (action === "ignore") {
       onUpdate(c.id, { verified: "unverified" }, { actor: user?.name, action: `Skipped verification for ${c.id}`, type: "verify" });
+      if (selectedComplaint?.id === c.id) {
+        setSelectedComplaint(prev => ({ ...prev, verified: "unverified" }));
+      }
       showToast("Skipped verification", "info");
     } else if (action === "reopen") {
       onUpdate(c.id, { status: "reopened", severity: "high", verified: null, reopenReason: reason, timeline: [...(c.timeline || []), { action: "Reopened: " + reason, actor: user?.name, time: ts() }] }, { actor: user?.name, action: `Re-complaint ${c.id}: ${reason}`, type: "reopen", flag: true });
+      if (selectedComplaint?.id === c.id) {
+        setSelectedComplaint(prev => ({ ...prev, status: "reopened", severity: "high", verified: null }));
+      }
       showToast("Re-complaint raised → High Priority", "warning");
     }
     setVerifyModal(null); setReason("");
@@ -1433,225 +1958,340 @@ function MyComplaints({ complaints, user, onUpdate, showToast }) {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* List of complaints as clean, clickable cards */}
       {mine.map((c, i) => (
-        <div key={c.id} className="card" style={{ padding: 20, cursor: "pointer", animationDelay: `${i * 0.04}s` }} onClick={() => setExpanded(expanded === c.id ? null : c.id)}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>◉</div>
+        <div
+          key={c.id}
+          className="card hover-lift"
+          style={{
+            padding: "16px 20px",
+            cursor: "pointer",
+            animationDelay: `${i * 0.04}s`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            transition: "all 0.2s ease"
+          }}
+          onClick={() => {
+            setSelectedComplaint(c);
+            setActivePhotoTab("initial");
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, minWidth: 0 }}>
+            {/* Pothole Photo Thumbnail (Whole image visible, no cropping) */}
+            <div
+              style={{
+                width: 68,
+                height: 68,
+                borderRadius: 10,
+                background: "#080c16",
+                border: "1px solid rgba(255,255,255,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                flexShrink: 0
+              }}
+            >
+              {c.photo ? (
+                <img
+                  src={getPhotoSrc(c.photo)}
+                  alt="Pothole"
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  onError={e => {
+                    e.target.style.display = "none";
+                    e.target.parentElement.innerHTML = '<span style="font-size:22px;opacity:0.4;">📸</span>';
+                  }}
+                />
+              ) : (
+                <span style={{ fontSize: 22, opacity: 0.4 }}>📸</span>
+              )}
+            </div>
+
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                <span className="heading" style={{ fontWeight: 600, fontSize: 15 }}>{c.title}</span>
-                <span style={{ fontSize: 12, color: "var(--tx-l2)", fontFamily: "monospace" }}>#{c.id}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                <span className="heading" style={{ fontWeight: 600, fontSize: 15, color: "var(--tx-l)" }}>{c.title}</span>
+                <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace" }}>#{c.id}</span>
               </div>
-              <div style={{ fontSize: 13, color: "var(--tx-l2)" }}>⊞ {c.area} · {c.date}</div>
-              <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
-                <SBadge s={c.status} /><SevBadge s={c.severity} />{c.verified && <VBadge s={c.verified} />}
+              <div style={{ fontSize: 12.5, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span>📍 {c.area}</span>
+                <span>•</span>
+                <span>📅 {c.date}</span>
+              </div>
+              <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                <SBadge s={c.status} />
+                <SevBadge s={c.severity} />
+                {c.verified && <VBadge s={c.verified} />}
               </div>
             </div>
-            <span style={{ color: "var(--tx-l3)", fontSize: 14, transition: "transform 0.3s", transform: expanded === c.id ? "rotate(180deg)" : "none", display: "inline-block", marginTop: 2 }}>⌄</span>
           </div>
 
-          {expanded === c.id && (
-            <div style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.06)", animation: "fadeUp 0.25s ease" }} onClick={e => e.stopPropagation()}>
-              {(c.photo && (c.photo.startsWith('data:') || c.photo.startsWith('blob:'))) && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Initial Report Photo</div>
-                  <img src={c.photo} alt="Pothole Evidence" style={{ width: "100%", maxHeight: 240, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }} 
-                       onError={(e) => { 
-                         e.target.style.display = 'none'; 
-                         e.target.parentElement.innerHTML = '<div style=\"padding: 16px; text-align: center; color: var(--tx-l3); font-size: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;\">📷 Image not available</div>';
-                       }} />
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6, fontSize: 12, padding: "7px 14px" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedComplaint(c);
+              setActivePhotoTab("initial");
+            }}
+          >
+            <span>View Details</span>
+            <span>↗</span>
+          </button>
+        </div>
+      ))}
+
+      {/* POP-UP MODAL: Pothole Details with Left Content & Right Full-Visibility Picture */}
+      {selectedComplaint && (
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(3, 6, 14, 0.9)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setSelectedComplaint(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 960,
+              background: "linear-gradient(165deg, #131929 0%, #0d121d 100%)",
+              border: "1px solid rgba(201,168,76,0.35)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.08)",
+              maxHeight: "92vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "18px 26px",
+                background: "rgba(255,255,255,0.02)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: "rgba(201,168,76,0.15)",
+                    border: "1px solid rgba(201,168,76,0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    color: "var(--gold2)",
+                  }}
+                >
+                  ◈
                 </div>
-              )}
-              
-              {c.completionPhoto && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Completion Photo</div>
-                  <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(110,201,141,0.05)", border: "1px solid rgba(110,201,141,0.15)", marginBottom: 12 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <span style={{ fontSize: 12, color: "#6ec98d", fontWeight: 600 }}>📷 Repair completed with geo-tagged proof</span>
-                      {c.completionTimestamp && (
-                        <span style={{ fontSize: 11, color: "var(--tx-l3)" }}>• {c.completionTimestamp}</span>
-                      )}
-                    </div>
-                    
-                    {/* Location Verification */}
-                    {c.locationVerified !== false && (
-                      <div style={{ fontSize: 11, color: "#6ec98d", marginBottom: 6 }}>
-                        ✓ Location verified (±8m tolerance)
-                      </div>
-                    )}
-                    
-                    {/* Show completion location if available */}
-                    {c.completionLocation && (
-                      <div style={{ fontSize: 10, color: "var(--tx-l3)", marginBottom: 6 }}>
-                        📍 Captured at: {c.completionLocation.lat?.toFixed(6) || "N/A"}, {c.completionLocation.lng?.toFixed(6) || "N/A"}
-                        {c.completionLocation.accuracy && <span> • Accuracy: ±{c.completionLocation.accuracy.toFixed(0)}m</span>}
-                      </div>
-                    )}
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span className="heading" style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)" }}>
+                      Pothole Dossier
+                    </span>
+                    <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace" }}>
+                      #{selectedComplaint.id}
+                    </span>
                   </div>
-                  
-                  {/* Photo Display */}
-                  <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Photo Evidence</div>
-                    <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
-                      {c.completionPhoto && (
-                        <img 
-                          src={c.completionPhoto.startsWith('data:') || c.completionPhoto.startsWith('blob:') ? c.completionPhoto : `/uploads/${c.completionPhoto}`}
-                          alt="Completion Photo" 
-                          style={{ 
-                            width: "100%", 
-                            maxHeight: "300px", 
-                            objectFit: "contain", 
-                            borderRadius: 8,
-                            background: "#000",
-                            cursor: "pointer",
-                            transition: "transform 0.3s ease"
-                          }}
-                          onClick={() => {
-                            const fullscreenImg = document.createElement('img');
-                            fullscreenImg.src = c.completionPhoto.startsWith('data:') || c.completionPhoto.startsWith('blob:') ? c.completionPhoto : '/uploads/' + c.completionPhoto;
-                            fullscreenImg.style.position = 'fixed';
-                            fullscreenImg.style.top = '0';
-                            fullscreenImg.style.left = '0';
-                            fullscreenImg.style.width = '100vw';
-                            fullscreenImg.style.height = '100vh';
-                            fullscreenImg.style.background = 'rgba(0,0,0,0.9)';
-                            fullscreenImg.style.zIndex = '9999';
-                            fullscreenImg.style.objectFit = 'contain';
-                            fullscreenImg.style.cursor = 'pointer';
-                            fullscreenImg.onclick = function() { document.body.removeChild(fullscreenImg); };
-                            document.body.appendChild(fullscreenImg);
-                          }}
-                          onError={(e) => { 
-                            e.target.style.display = 'none'; 
-                            e.target.parentElement.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--tx-l3); font-size: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">📷 Photo not available</div>';
-                          }} 
-                        />
-                      )}
-                      
-                      {/* Photo Controls */}
-                      <div style={{ 
-                        position: "absolute", 
-                        bottom: 8, 
-                        right: 8, 
-                        display: "flex", 
-                        gap: 6 
-                      }}>
-                        <button 
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => {
-                            if (c.completionPhoto) {
-                              const link = document.createElement('a');
-                              link.href = c.completionPhoto.startsWith('data:') || c.completionPhoto.startsWith('blob:') ? c.completionPhoto : '/uploads/' + c.completionPhoto;
-                              link.download = c.completionPhoto || 'completion-photo.jpg';
-                              link.click();
-                            }
-                          }}
-                          style={{ 
-                            fontSize: 10, 
-                            padding: "4px 8px", 
-                            background: "rgba(0,0,0,0.7)",
-                            borderColor: "rgba(255,255,255,0.3)",
-                            color: "white"
-                          }}
-                        >
-                          📥 Download
-                        </button>
-                        <button 
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => {
-                            const fullscreenImg = document.createElement('img');
-                            fullscreenImg.src = c.completionPhoto.startsWith('data:') || c.completionPhoto.startsWith('blob:') ? c.completionPhoto : '/uploads/' + c.completionPhoto;
-                            fullscreenImg.style.position = 'fixed';
-                            fullscreenImg.style.top = '0';
-                            fullscreenImg.style.left = '0';
-                            fullscreenImg.style.width = '100vw';
-                            fullscreenImg.style.height = '100vh';
-                            fullscreenImg.style.background = 'rgba(0,0,0,0.9)';
-                            fullscreenImg.style.zIndex = '9999';
-                            fullscreenImg.style.objectFit = 'contain';
-                            fullscreenImg.style.cursor = 'pointer';
-                            fullscreenImg.onclick = function() { document.body.removeChild(fullscreenImg); };
-                            document.body.appendChild(fullscreenImg);
-                          }}
-                          style={{ 
-                            fontSize: 10, 
-                            padding: "4px 8px", 
-                            background: "rgba(0,0,0,0.7)",
-                            borderColor: "rgba(255,255,255,0.3)",
-                            color: "white"
-                          }}
-                        >
-                          🔍 Fullscreen
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div style={{ fontSize: 10, color: "var(--tx-l3)", marginBottom: 8, fontStyle: "italic" }}>
-                      Photo: {c.completionPhoto || "Completion photo"}
-                    </div>
+                  <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>
+                    Reported by {selectedComplaint.reportedBy || "Citizen"} · {selectedComplaint.date}
                   </div>
-                </div>
-              )}
-              {c.desc && <div style={{ fontSize: 13, color: "var(--tx-l2)", marginBottom: 18, lineHeight: 1.6 }}>{c.desc}</div>}
-              
-              {/* Citizen-Facing Resolution Progress Stepper */}
-              <div style={{ marginBottom: 18, padding: "14px 18px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 12 }}>
-                  Report Resolution Progress
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, textAlign: "center" }}>
-                  {[
-                    { label: "1. Reported", active: true, desc: c.date ? c.date.split(",")[0] : "Logged" },
-                    { label: "2. Verified", active: ["assigned", "in_progress", "in-progress", "completed"].includes(c.status), desc: "Inspected" },
-                    { label: "3. Dispatched", active: ["in_progress", "in-progress", "completed"].includes(c.status), desc: c.contractor ? "Assigned" : "Pending" },
-                    { label: "4. Resolved", active: c.status === "completed", desc: c.verified ? "Verified" : c.status === "completed" ? "Repaired" : "Pending" },
-                  ].map((st, sidx) => (
-                    <div key={sidx} style={{ padding: "8px 4px", borderRadius: 8, background: st.active ? "rgba(110,201,141,0.08)" : "rgba(255,255,255,0.02)", border: st.active ? "1px solid rgba(110,201,141,0.2)" : "1px solid rgba(255,255,255,0.05)" }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: st.active ? "#6ec98d" : "var(--tx-l3)" }}>{st.label}</div>
-                      <div style={{ fontSize: 10.5, color: "var(--tx-l3)", marginTop: 2 }}>{st.desc}</div>
-                    </div>
-                  ))}
                 </div>
               </div>
 
-              {(c.timeline || []).length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>Timeline</div>
-                  <div className="tline">
-                    {(c.timeline || []).map((tl, idx) => (
-                      <div key={idx} style={{ position: "relative", paddingBottom: 12 }}>
-                        <div className="tl-dot" />
-                        <div style={{ fontSize: 13, fontWeight: 500 }}>{tl.action}</div>
-                        <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 2 }}>{tl.time}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <SBadge s={selectedComplaint.status} />
+                <SevBadge s={selectedComplaint.severity} />
+                {selectedComplaint.verified && <VBadge s={selectedComplaint.verified} />}
+                <button
+                  onClick={() => setSelectedComplaint(null)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "var(--tx-l)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 16,
+                    fontWeight: 600,
+                    marginLeft: 6
+                  }}
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: 2 Columns (Content on Left, Full Picture on Right) */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.05fr 1fr",
+                gap: 22,
+                padding: "22px 26px",
+                overflowY: "auto",
+                flex: 1
+              }}
+              className="stack-m"
+            >
+              {/* LEFT COLUMN: Content Details */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {/* Title & Location Box */}
+                <div style={{ padding: "15px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gold2)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                    Grievance Heading & Location
+                  </div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)", marginBottom: 8, lineHeight: 1.35 }}>
+                    {selectedComplaint.title}
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>📍</span>
+                    <span>{selectedComplaint.area}</span>
+                  </div>
+                  {(selectedComplaint.lat && selectedComplaint.lng) && (
+                    <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4, fontFamily: "monospace" }}>
+                      Geo-coordinates: {selectedComplaint.lat}, {selectedComplaint.lng}
+                    </div>
+                  )}
+                </div>
+
+                {/* Description Box */}
+                <div style={{ padding: "14px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                    Hazard Description & Field Notes
+                  </div>
+                  <div style={{ fontSize: 13.5, color: "var(--tx-l)", lineHeight: 1.6 }}>
+                    {selectedComplaint.desc || "No detailed field notes submitted for this grievance."}
+                  </div>
+                </div>
+
+                {/* Resolution Progress Stepper */}
+                <div style={{ padding: "14px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
+                    Resolution Progress
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, textAlign: "center" }}>
+                    {[
+                      { label: "1. Reported", active: true, desc: selectedComplaint.date ? selectedComplaint.date.split(",")[0] : "Logged" },
+                      { label: "2. Verified", active: ["assigned", "in_progress", "in-progress", "completed"].includes(selectedComplaint.status), desc: "Inspected" },
+                      { label: "3. Dispatched", active: ["in_progress", "in-progress", "completed"].includes(selectedComplaint.status), desc: selectedComplaint.contractor ? "Assigned" : "Pending" },
+                      { label: "4. Resolved", active: selectedComplaint.status === "completed", desc: selectedComplaint.verified ? "Verified" : selectedComplaint.status === "completed" ? "Repaired" : "Pending" },
+                    ].map((st, sidx) => (
+                      <div key={sidx} style={{ padding: "8px 4px", borderRadius: 8, background: st.active ? "rgba(110,201,141,0.08)" : "rgba(255,255,255,0.02)", border: st.active ? "1px solid rgba(110,201,141,0.2)" : "1px solid rgba(255,255,255,0.05)" }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 600, color: st.active ? "#6ec98d" : "var(--tx-l3)" }}>{st.label}</div>
+                        <div style={{ fontSize: 10, color: "var(--tx-l3)", marginTop: 2 }}>{st.desc}</div>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-              {c.contractor && (
-                <div style={{ fontSize: 13, marginBottom: 14, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6 }}>
-                  <span>Assigned Road Maintenance Unit:</span>
-                  <span style={{ fontWeight: 600, color: "var(--tx-l)" }}>{c.contractor}</span>
-                </div>
-              )}
-              {c.status === "completed" && !c.verified && (
-                <div style={{ padding: "16px 18px", borderRadius: 11, background: "rgba(61,90,122,0.1)", border: "1px solid rgba(61,90,122,0.2)" }}>
-                  <div className="heading" style={{ fontSize: 14, marginBottom: 6 }}>Verify Repair Quality</div>
-                  <div style={{ fontSize: 12, color: "var(--tx-l3)", marginBottom: 12 }}>The contractor has marked this complete. Was the repair satisfactory?</div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <button className="btn btn-success btn-sm" onClick={() => handleVerify(c, "accept")}>✓ Accept Repair</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => setVerifyModal(c)}>✗ Reject</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleVerify(c, "ignore")}>Skip Verification</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      ))}
 
+                {/* Assigned Contractor */}
+                {selectedComplaint.contractor && (
+                  <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>Assigned Maintenance Unit:</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--gold2)" }}>{selectedComplaint.contractor}</div>
+                  </div>
+                )}
+
+                {/* Timeline */}
+                {(selectedComplaint.timeline || []).length > 0 && (
+                  <div style={{ padding: "14px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+                      Activity History & Audit Milestones
+                    </div>
+                    <div className="tline" style={{ maxHeight: 150, overflowY: "auto" }}>
+                      {(selectedComplaint.timeline || []).map((tl, idx) => (
+                        <div key={idx} style={{ position: "relative", paddingBottom: 10 }}>
+                          <div className="tl-dot" />
+                          <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--tx-l)" }}>{tl.action}</div>
+                          <div style={{ fontSize: 10.5, color: "var(--tx-l3)", marginTop: 2 }}>{tl.time}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Citizen Quality Verification Prompt */}
+                {selectedComplaint.status === "completed" && !selectedComplaint.verified && (
+                  <div style={{ padding: "16px 18px", borderRadius: 12, background: "rgba(110,201,141,0.08)", border: "1px solid rgba(110,201,141,0.25)" }}>
+                    <div className="heading" style={{ fontSize: 14, marginBottom: 4, color: "#6ec98d" }}>Verify Road Repair Quality</div>
+                    <div style={{ fontSize: 12, color: "var(--tx-l2)", marginBottom: 12 }}>Contractor has submitted completion evidence. Does the repaired road meet your satisfaction?</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <button className="btn btn-success btn-sm" onClick={() => handleVerify(selectedComplaint, "accept")}>✓ Accept Repair</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setVerifyModal(selectedComplaint)}>✗ Reject (Raise Re-Complaint)</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleVerify(selectedComplaint, "ignore")}>Skip Verification</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT COLUMN: Pothole Picture (UNCUT, FULL VISIBILITY WITH OBJECT-FIT CONTAIN) */}
+              <PotholePhotoPane
+                photo={selectedComplaint.photo}
+                completionPhoto={selectedComplaint.completionPhoto}
+                activeTab={activePhotoTab}
+                onTabChange={setActivePhotoTab}
+                onFullscreen={setFullscreenPhoto}
+                title="Ground Evidence Photo (Full View)"
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: "14px 26px",
+                background: "rgba(10,14,24,0.9)",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>
+                Municipal Infrastructure Monitoring & Grievance Dossier
+              </div>
+              <button
+                className="btn btn-ghost"
+                style={{ padding: "8px 22px", fontSize: 13, borderColor: "rgba(255,255,255,0.15)" }}
+                onClick={() => setSelectedComplaint(null)}
+              >
+                Close Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Photo Lightbox Modal */}
+      <FullscreenLightboxModal src={fullscreenPhoto} onClose={() => setFullscreenPhoto(null)} />
+
+      {/* Reject Modal */}
       {verifyModal && (
         <div className="modal-ov" onClick={e => e.target === e.currentTarget && setVerifyModal(null)}>
           <div className="modal-box">
@@ -1661,9 +2301,6 @@ function MyComplaints({ complaints, user, onUpdate, showToast }) {
                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>↺ Raise Re-Complaint</div>
                 <div style={{ fontSize: 12, color: "var(--tx-l3)", marginBottom: 12 }}>This will escalate to High Priority with admin notification.</div>
                 <div style={{ marginBottom: 10 }}><label>Reason *</label><textarea placeholder="Why is the repair unsatisfactory?" rows={2} value={reason} onChange={e => setReason(e.target.value)} /></div>
-                <div className="upload-z" style={{ padding: 12, marginBottom: 12 }}>
-                  <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>◈ Upload Geo-Tagged Proof</div>
-                </div>
                 <button className="btn btn-danger btn-sm" disabled={!reason.trim()} onClick={() => handleVerify(verifyModal, "reopen")}>↺ Raise Re-Complaint</button>
               </div>
               <div style={{ textAlign: "center", fontSize: 11, color: "var(--tx-l3)", margin: "6px 0" }}>— or —</div>
@@ -1894,6 +2531,8 @@ function AdminComplaints({ complaints, contractors, onUpdate, onUpdateContractor
   const [budgetIn, setBudgetIn] = useState("");
   const [fraudState, setFraudState] = useState("idle"); // idle | loading | result
   const [fraudResult, setFraudResult] = useState(null);
+  const [adminPhotoTab, setAdminPhotoTab] = useState("initial");
+  const [fullscreenPhoto, setFullscreenPhoto] = useState(null);
 
   const filtered = complaints.filter(c => {
     if (statusF !== "all" && c.status !== statusF) return false;
@@ -1981,7 +2620,7 @@ function AdminComplaints({ complaints, contractors, onUpdate, onUpdateContractor
                     <td><SBadge s={c.status} /></td>
                     <td style={{ fontSize: 13, color: "var(--tx-l2)" }}>{c.date}</td>
                     <td style={{ fontSize: 14, fontWeight: 700, color: "#7ed4a0" }}>₹{(c.cost || 0).toLocaleString()}</td>
-                    <td><button className="btn btn-ghost btn-sm" onClick={() => { setSel(c); setConSel(c.contractorId || ""); setBudgetIn(c.budget || ""); setFraudState("idle"); setFraudResult(null); }}>View</button></td>
+                    <td><button className="btn btn-ghost btn-sm" onClick={() => { setSel(c); setConSel(c.contractorId || ""); setBudgetIn(c.budget || ""); setFraudState("idle"); setFraudResult(null); setAdminPhotoTab("initial"); }}>View</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -1990,93 +2629,278 @@ function AdminComplaints({ complaints, contractors, onUpdate, onUpdateContractor
         </div>
       )}
 
+      {/* POP-UP MODAL: Admin Inspection Dossier with Left Content & Right Full-Visibility Picture */}
       {sel && (
-        <div className="modal-ov" onClick={e => e.target === e.currentTarget && setSel(null)}>
-          <div className="modal-box">
-            <div className="modal-inner">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(3, 6, 14, 0.9)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setSel(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 980,
+              background: "linear-gradient(165deg, #131929 0%, #0d121d 100%)",
+              border: "1px solid rgba(201,168,76,0.35)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.08)",
+              maxHeight: "92vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "18px 26px",
+                background: "rgba(255,255,255,0.02)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: "rgba(201,168,76,0.15)",
+                    border: "1px solid rgba(201,168,76,0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    color: "var(--gold2)",
+                  }}
+                >
+                  ◈
+                </div>
                 <div>
-                  <div className="heading" style={{ fontSize: 21 }}>{sel.id}</div>
-                  <div style={{ color: "var(--tx-l2)", fontSize: 14, marginTop: 3 }}>{sel.title}</div>
-                </div>
-                <button onClick={() => setSel(null)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, width: 32, height: 32, cursor: "pointer", color: "var(--tx-l3)", fontSize: 18 }}>×</button>
-              </div>
-
-              {(sel.photo && (sel.photo.startsWith('data:') || sel.photo.startsWith('blob:'))) && (
-                <div style={{ marginBottom: 18 }}>
-                  <img src={sel.photo} alt="Pothole Evidence" style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }} 
-                       onError={(e) => { 
-                         e.target.style.display = 'none'; 
-                         e.target.parentElement.innerHTML = '<div style=\"padding: 16px; text-align: center; color: var(--tx-l3); font-size: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;\">📷 Image not available</div>';
-                       }} />
-                </div>
-              )}
-              {sel.desc && <div style={{ fontSize: 13, color: "var(--tx-l2)", marginBottom: 18, lineHeight: 1.6 }}>{sel.desc}</div>}
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 18 }}>
-                {[["Area", sel.area], ["Severity", sel.severity], ["Date", sel.date], ["Cost", "₹" + (sel.cost || 0).toLocaleString()], ["Reporter", sel.reportedBy], ["Contractor", sel.contractor || "Unassigned"]].map(([l, v]) => (
-                  <div key={l} style={{ padding: "10px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <div style={{ color: "var(--tx-l2)", fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 4 }}>{l}</div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{v || "—"}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span className="heading" style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)" }}>
+                      Administrative Review Dossier
+                    </span>
+                    <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace" }}>
+                      #{sel.id}
+                    </span>
                   </div>
-                ))}
-              </div>
-
-              {sel.aiData && sel.costBreakdown && (
-                <CostCalculationBreakdown 
-                  aiData={sel.aiData} 
-                  costBreakdown={sel.costBreakdown} 
-                  rates={sel.costBreakdown.rates_used || { cement: 500, sand: 1700, aggregate: 1400, labor: 400 }}
-                />
-              )}
-
-              {/* Assign */}
-              <div style={{ marginBottom: 18 }}>
-                <label>Assign to Contractor</label>
-                <select value={conSel} onChange={e => setConSel(e.target.value)}>
-                  <option value="">Select contractor</option>
-                  {contractors.map(c => {
-                    const used = c.usedBudget || 0;
-                    const allocated = c.allocatedBudget || 0;
-                    const remaining = Math.max(0, allocated - used);
-                    return (
-                      <option key={c.id} value={c.id}>
-                        {c.name} (₹{remaining.toLocaleString()} remaining)
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-
-              {/* Fraud Detection */}
-              <div style={{ marginBottom: 18 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <button className="btn btn-ghost btn-sm" onClick={runFraud} disabled={fraudState === "loading"}>
-                    {fraudState === "loading" ? <><Spinner />Analysing…</> : "⚠ AI Fraud Analysis"}
-                  </button>
-                  {fraudState === "idle" && <span style={{ fontSize: 11, color: "var(--tx-l3)" }}>Run Claude-powered fraud check</span>}
+                  <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>
+                    Reported by {sel.reportedBy || "Citizen"} · {sel.date}
+                  </div>
                 </div>
-                {fraudState === "result" && fraudResult && (
-                  <div style={{ padding: "12px 16px", borderRadius: 10, fontSize: 12, background: fraudResult.fraud_risk === "high" ? "rgba(192,82,42,0.1)" : fraudResult.fraud_risk === "medium" ? "rgba(201,168,76,0.08)" : "rgba(74,124,89,0.08)", border: `1px solid ${fraudResult.fraud_risk === "high" ? "rgba(192,82,42,0.28)" : fraudResult.fraud_risk === "medium" ? "rgba(201,168,76,0.2)" : "rgba(74,124,89,0.2)"}` }}>
-                    <div style={{ fontWeight: 700, marginBottom: 5 }}>
-                      Risk: <span style={{ color: fraudResult.fraud_risk === "high" ? "#e8835c" : fraudResult.fraud_risk === "medium" ? "#e8c96a" : "#6ec98d", textTransform: "uppercase" }}>{fraudResult.fraud_risk}</span>
-                      <span style={{ color: "var(--tx-l3)", fontWeight: 400, marginLeft: 8 }}>Score: {fraudResult.score}/100</span>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <SBadge s={sel.status} />
+                <SevBadge s={sel.severity} />
+                {sel.verified && <VBadge s={sel.verified} />}
+                <button
+                  onClick={() => setSel(null)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "var(--tx-l)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 16,
+                    fontWeight: 600,
+                    marginLeft: 6
+                  }}
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: 2 Columns (Content on Left, Full Uncropped Picture on Right) */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.05fr 1fr",
+                gap: 22,
+                padding: "22px 26px",
+                overflowY: "auto",
+                flex: 1
+              }}
+              className="stack-m"
+            >
+              {/* LEFT COLUMN: Grievance Content & Action Tools */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {/* Title & Area Box */}
+                <div style={{ padding: "15px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gold2)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                    Grievance Heading & Location
+                  </div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)", marginBottom: 6 }}>
+                    {sel.title}
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>📍</span>
+                    <span>{sel.area}</span>
+                  </div>
+                  {(sel.lat && sel.lng) && (
+                    <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4, fontFamily: "monospace" }}>
+                      Geo-coordinates: {sel.lat}, {sel.lng}
                     </div>
-                    {fraudResult.flags?.length > 0 && <div style={{ color: "#e8835c", marginBottom: 5 }}>{fraudResult.flags.map(f => `⚑ ${f}`).join(" · ")}</div>}
-                    <div style={{ color: "var(--tx-l2)" }}>{fraudResult.recommendation}</div>
+                  )}
+                </div>
+
+                {/* Description */}
+                {sel.desc && (
+                  <div style={{ padding: "14px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                      Hazard Description & Field Notes
+                    </div>
+                    <div style={{ fontSize: 13.5, color: "var(--tx-l)", lineHeight: 1.6 }}>
+                      {sel.desc}
+                    </div>
                   </div>
                 )}
+
+                {/* Metadata Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+                  {[["Area", sel.area], ["Severity", sel.severity], ["Date", sel.date], ["Estimated Cost", "₹" + (sel.cost || 0).toLocaleString()], ["Citizen Reporter", sel.reportedBy], ["Assigned Contractor", sel.contractor || "Unassigned"]].map(([l, v]) => (
+                    <div key={l} style={{ padding: "10px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.07)" }}>
+                      <div style={{ color: "var(--tx-l2)", fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 4 }}>{l}</div>
+                      <div style={{ fontWeight: 600, fontSize: 13.5 }}>{v || "—"}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* AI Cost Breakdown */}
+                {sel.aiData && sel.costBreakdown && (
+                  <CostCalculationBreakdown 
+                    aiData={sel.aiData} 
+                    costBreakdown={sel.costBreakdown} 
+                    rates={sel.costBreakdown.rates_used || { cement: 500, sand: 1700, aggregate: 1400, labor: 400 }}
+                  />
+                )}
+
+                {/* Assign to Contractor */}
+                <div style={{ padding: "14px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--gold2)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
+                    Dispatch to Infrastructure Contractor
+                  </label>
+                  <select value={conSel} onChange={e => setConSel(e.target.value)} style={{ marginBottom: 10 }}>
+                    <option value="">Select contractor partner</option>
+                    {contractors.map(c => {
+                      const used = c.usedBudget || 0;
+                      const allocated = c.allocatedBudget || 0;
+                      const remaining = Math.max(0, allocated - used);
+                      return (
+                        <option key={c.id} value={c.id}>
+                          {c.name} (₹{remaining.toLocaleString()} balance)
+                        </option>
+                      );
+                    })}
+                  </select>
+
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button className="btn btn-gold btn-sm" onClick={assign} disabled={!conSel} style={{ flex: 1 }}>
+                      ◈ Confirm Assignment
+                    </button>
+                  </div>
+                </div>
+
+                {/* Fraud Detection Analysis */}
+                <div style={{ padding: "14px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      AI Fraud & Risk Audit
+                    </span>
+                    <button className="btn btn-ghost btn-sm" onClick={runFraud} disabled={fraudState === "loading"} style={{ fontSize: 11, padding: "5px 12px" }}>
+                      {fraudState === "loading" ? <><Spinner />Analysing…</> : "⚠ Run AI Audit"}
+                    </button>
+                  </div>
+
+                  {fraudState === "idle" && (
+                    <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>Click to scan this report against historical anomaly & duplicate patterns.</div>
+                  )}
+
+                  {fraudState === "result" && fraudResult && (
+                    <div style={{ padding: "12px 14px", borderRadius: 8, fontSize: 12, background: fraudResult.fraud_risk === "high" ? "rgba(192,82,42,0.1)" : fraudResult.fraud_risk === "medium" ? "rgba(201,168,76,0.08)" : "rgba(74,124,89,0.08)", border: `1px solid ${fraudResult.fraud_risk === "high" ? "rgba(192,82,42,0.28)" : fraudResult.fraud_risk === "medium" ? "rgba(201,168,76,0.2)" : "rgba(74,124,89,0.2)"}` }}>
+                      <div style={{ fontWeight: 700, marginBottom: 5 }}>
+                        Risk: <span style={{ color: fraudResult.fraud_risk === "high" ? "#e8835c" : fraudResult.fraud_risk === "medium" ? "#e8c96a" : "#6ec98d", textTransform: "uppercase" }}>{fraudResult.fraud_risk}</span>
+                        <span style={{ color: "var(--tx-l3)", fontWeight: 400, marginLeft: 8 }}>Anomaly Score: {fraudResult.score}/100</span>
+                      </div>
+                      {fraudResult.flags?.length > 0 && <div style={{ color: "#e8835c", marginBottom: 5 }}>{fraudResult.flags.map(f => `⚑ ${f}`).join(" · ")}</div>}
+                      <div style={{ color: "var(--tx-l2)" }}>{fraudResult.recommendation}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Primary Decision Actions */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 4 }}>
+                  <button className="btn btn-success btn-sm" onClick={() => doAction("Approved", { status: "in_progress", timeline: [...(sel.timeline || []), { action: "Approved by Admin", actor: "Admin", time: ts() }] }, { actor: "Admin", action: `Approved ${sel.id}`, type: "approve" })}>
+                    ✓ Approve Work
+                  </button>
+                  <button className="btn btn-danger btn-sm" onClick={() => doAction("Rejected", { status: "rejected", timeline: [...(sel.timeline || []), { action: "Rejected by Admin", actor: "Admin", time: ts() }] }, { actor: "Admin", action: `Rejected ${sel.id}`, type: "reject" })}>
+                    ✗ Reject Report
+                  </button>
+                </div>
               </div>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button className="btn btn-success btn-sm" onClick={() => doAction("Approved", { status: "in_progress", timeline: [...(sel.timeline || []), { action: "Approved by Admin", actor: "Admin", time: ts() }] }, { actor: "Admin", action: `Approved ${sel.id}`, type: "approve" })}>✓ Approve</button>
-                <button className="btn btn-danger btn-sm" onClick={() => doAction("Rejected", { status: "rejected", timeline: [...(sel.timeline || []), { action: "Rejected by Admin", actor: "Admin", time: ts() }] }, { actor: "Admin", action: `Rejected ${sel.id}`, type: "reject" })}>✗ Reject</button>
-                <button className="btn btn-gold btn-sm" onClick={assign} disabled={!conSel}>◈ Assign</button>
+              {/* RIGHT COLUMN: Pothole Picture (UNCUT, FULL VISIBILITY WITH OBJECT-FIT CONTAIN) */}
+              <PotholePhotoPane
+                photo={sel.photo}
+                completionPhoto={sel.completionPhoto}
+                activeTab={adminPhotoTab}
+                onTabChange={setAdminPhotoTab}
+                onFullscreen={setFullscreenPhoto}
+                title="Ground Evidence Photo (Admin Audit)"
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: "14px 26px",
+                background: "rgba(10,14,24,0.9)",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>
+                Municipal Road Governance & Complaint Oversight
               </div>
+              <button
+                className="btn btn-ghost"
+                style={{ padding: "8px 22px", fontSize: 13, borderColor: "rgba(255,255,255,0.15)" }}
+                onClick={() => setSel(null)}
+              >
+                Close Review
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Fullscreen Photo Lightbox Modal */}
+      <FullscreenLightboxModal src={fullscreenPhoto} onClose={() => setFullscreenPhoto(null)} />
     </div>
   );
 }
@@ -3753,10 +4577,15 @@ function ContractorDashboard({ complaints, contractor, onNav, onUpdate, showToas
 // ─── CONTRACTOR TASKS ──────────────────────────────────────────────────────────
 function ContractorTasks({ complaints, contractor, onUpdate, showToast }) {
   const mine = complaints.filter(c => c.contractorId === contractor?.id);
-  const [expanded, setExpanded] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [activePhotoTab, setActivePhotoTab] = useState("initial");
+  const [fullscreenPhoto, setFullscreenPhoto] = useState(null);
 
   const acceptBudget = (c) => {
     onUpdate(c.id, { status: "in_progress", timeline: [...(c.timeline || []), { action: `Budget ₹${c.budget?.toLocaleString()} accepted — work started`, actor: contractor?.name, time: ts() }] }, { actor: contractor?.name, action: `Accepted budget ₹${c.budget} for ${c.id}`, type: "budget" });
+    if (selectedTask?.id === c.id) {
+      setSelectedTask(prev => ({ ...prev, status: "in_progress" }));
+    }
     showToast("Budget accepted. Work can begin.", "success");
   };
 
@@ -3770,51 +4599,308 @@ function ContractorTasks({ complaints, contractor, onUpdate, showToast }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {mine.map(t => (
-        <div key={t.id} className="card" style={{ padding: 20 }}>
-          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <div style={{ width: 42, height: 42, borderRadius: 11, background: t.severity === "high" ? "rgba(192,82,42,0.15)" : "rgba(201,168,76,0.1)", border: `1px solid ${t.severity === "high" ? "rgba(192,82,42,0.25)" : "rgba(201,168,76,0.18)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>◉</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="heading" style={{ fontSize: 15, fontWeight: 600 }}>{t.title}</div>
-              <div style={{ fontSize: 13, color: "var(--tx-l2)", marginTop: 2 }}>⊞ {t.area} · Budget: <span style={{ color: "#6ec98d", fontWeight: 700 }}>₹{(t.budget || 0).toLocaleString()}</span></div>
+        <div
+          key={t.id}
+          className="card hover-lift"
+          style={{
+            padding: "16px 20px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            transition: "all 0.2s ease"
+          }}
+          onClick={() => {
+            setSelectedTask(t);
+            setActivePhotoTab("initial");
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0 }}>
+            {/* Pothole Photo Thumbnail (Whole image visible, no cropping) */}
+            <div
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 10,
+                background: "#080c16",
+                border: "1px solid rgba(255,255,255,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                flexShrink: 0
+              }}
+            >
+              {t.photo ? (
+                <img
+                  src={getPhotoSrc(t.photo)}
+                  alt="Pothole"
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  onError={e => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<span style="font-size:20px;opacity:0.4;">📸</span>';
+                  }}
+                />
+              ) : (
+                <span style={{ fontSize: 20, opacity: 0.4 }}>📸</span>
+              )}
             </div>
-            <div style={{ display: "flex", gap: 6 }}><SevBadge s={t.severity} /><SBadge s={t.status} /></div>
-            <button className="btn btn-ghost btn-sm" onClick={() => setExpanded(expanded === t.id ? null : t.id)}>Details</button>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                <span className="heading" style={{ fontSize: 15, fontWeight: 600 }}>{t.title}</span>
+                <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace" }}>#{t.id}</span>
+              </div>
+              <div style={{ fontSize: 13, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span>📍 {t.area}</span>
+                <span>•</span>
+                <span>Budget: <strong style={{ color: "#6ec98d", fontWeight: 700 }}>₹{(t.budget || 0).toLocaleString()}</strong></span>
+              </div>
+              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                <SevBadge s={t.severity} />
+                <SBadge s={t.status} />
+              </div>
+            </div>
           </div>
 
-          {expanded === t.id && (
-            <div style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.06)", animation: "fadeUp 0.25s ease" }}>
-              {(t.photo && (t.photo.startsWith('data:') || t.photo.startsWith('blob:'))) && (
-                <div style={{ marginBottom: 14 }}>
-                  <img src={t.photo} alt="Pothole Evidence" style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }} 
-                       onError={(e) => { 
-                         e.target.style.display = 'none'; 
-                         e.target.parentElement.innerHTML = '<div style=\"padding: 16px; text-align: center; color: var(--tx-l3); font-size: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;\">📷 Image not available</div>';
-                       }} />
-                </div>
-              )}
-              <div style={{ fontSize: 13, color: "var(--tx-l2)", marginBottom: 14, lineHeight: 1.6 }}>{t.desc || "No description provided."}</div>
-              
-              {t.aiData && t.costBreakdown && (
-                <CostCalculationBreakdown 
-                  aiData={t.aiData} 
-                  costBreakdown={t.costBreakdown} 
-                  rates={t.costBreakdown.rates_used || { cement: 500, sand: 1700, aggregate: 1400, labor: 400 }}
-                />
-              )}
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 14, fontSize: 12 }}>
-                {[["Reporter", t.reportedBy], ["Filed", t.date], ["Est. Cost", "₹" + (t.cost || 0).toLocaleString()], ["Budget", "₹" + (t.budget || 0).toLocaleString()]].map(([l, v]) => (
-                  <div key={l} style={{ padding: "8px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8 }}>
-                    <div style={{ color: "var(--tx-l3)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 2 }}>{l}</div>
-                    <div style={{ fontWeight: 600 }}>{v || "—"}</div>
-                  </div>
-                ))}
-              </div>
-              {t.status === "assigned" && <button className="btn btn-gold btn-sm" onClick={() => acceptBudget(t)}>⬢ Accept Budget & Start Work</button>}
-            </div>
-          )}
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6, fontSize: 12, padding: "7px 14px" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedTask(t);
+              setActivePhotoTab("initial");
+            }}
+          >
+            <span>Inspect Task</span>
+            <span>↗</span>
+          </button>
         </div>
       ))}
+
+      {/* POP-UP MODAL: Contractor Task Details with Left Content & Right Full-Visibility Picture */}
+      {selectedTask && (
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(3, 6, 14, 0.9)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setSelectedTask(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 980,
+              background: "linear-gradient(165deg, #131929 0%, #0d121d 100%)",
+              border: "1px solid rgba(201,168,76,0.35)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.08)",
+              maxHeight: "92vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "18px 26px",
+                background: "rgba(255,255,255,0.02)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: "rgba(201,168,76,0.15)",
+                    border: "1px solid rgba(201,168,76,0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    color: "var(--gold2)",
+                  }}
+                >
+                  ⚙
+                </div>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span className="heading" style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)" }}>
+                      Work Order Specification
+                    </span>
+                    <span style={{ fontSize: 11, color: "var(--gold2)", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.25)", padding: "1px 6px", borderRadius: 4, fontFamily: "monospace" }}>
+                      #{selectedTask.id}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>
+                    Assigned to {contractor?.name || "Contractor"} · Authorized Budget: ₹{(selectedTask.budget || 0).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <SBadge s={selectedTask.status} />
+                <SevBadge s={selectedTask.severity} />
+                <button
+                  onClick={() => setSelectedTask(null)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "var(--tx-l)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 16,
+                    fontWeight: 600,
+                    marginLeft: 6
+                  }}
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: 2 Columns (Content on Left, Full Uncropped Picture on Right) */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.05fr 1fr",
+                gap: 22,
+                padding: "22px 26px",
+                overflowY: "auto",
+                flex: 1
+              }}
+              className="stack-m"
+            >
+              {/* LEFT COLUMN: Task Details & Scope */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {/* Title & Location Box */}
+                <div style={{ padding: "15px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gold2)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                    Road Repair Target & Location
+                  </div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)", marginBottom: 6 }}>
+                    {selectedTask.title}
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--tx-l2)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>📍</span>
+                    <span>{selectedTask.area}</span>
+                  </div>
+                  {(selectedTask.lat && selectedTask.lng) && (
+                    <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4, fontFamily: "monospace" }}>
+                      Geo-coordinates: {selectedTask.lat}, {selectedTask.lng}
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div style={{ padding: "14px 18px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--tx-l3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                    Field Damage Specifications
+                  </div>
+                  <div style={{ fontSize: 13.5, color: "var(--tx-l)", lineHeight: 1.6 }}>
+                    {selectedTask.desc || "Standard road pavement defect requiring bituminous mix cold-patching and roller compaction."}
+                  </div>
+                </div>
+
+                {/* AI Cost Calculation Breakdown */}
+                {selectedTask.aiData && selectedTask.costBreakdown && (
+                  <CostCalculationBreakdown 
+                    aiData={selectedTask.aiData} 
+                    costBreakdown={selectedTask.costBreakdown} 
+                    rates={selectedTask.costBreakdown.rates_used || { cement: 500, sand: 1700, aggregate: 1400, labor: 400 }}
+                  />
+                )}
+
+                {/* Financial Summary Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+                  {[["Citizen Reporter", selectedTask.reportedBy], ["Date Logged", selectedTask.date], ["Estimated Cost", "₹" + (selectedTask.cost || 0).toLocaleString()], ["Authorized Budget", "₹" + (selectedTask.budget || 0).toLocaleString()]].map(([l, v]) => (
+                    <div key={l} style={{ padding: "10px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.07)" }}>
+                      <div style={{ color: "var(--tx-l2)", fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 4 }}>{l}</div>
+                      <div style={{ fontWeight: 600, fontSize: 13.5 }}>{v || "—"}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Contractor Action: Accept Budget */}
+                {selectedTask.status === "assigned" && (
+                  <div style={{ padding: "16px 18px", borderRadius: 12, background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.25)" }}>
+                    <div className="heading" style={{ fontSize: 14, marginBottom: 4, color: "var(--gold2)" }}>
+                      Accept Municipal Work Order
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--tx-l2)", marginBottom: 12 }}>
+                      Accepting this budget confirms your crew will mobilize to this location and start road reconstruction.
+                    </div>
+                    <button className="btn btn-gold btn-sm" onClick={() => acceptBudget(selectedTask)} style={{ width: "100%", justifyContent: "center", padding: "10px 16px" }}>
+                      ⬢ Accept Budget & Start Work
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT COLUMN: Pothole Picture (UNCUT, FULL VISIBILITY WITH OBJECT-FIT CONTAIN) */}
+              <PotholePhotoPane
+                photo={selectedTask.photo}
+                completionPhoto={selectedTask.completionPhoto}
+                activeTab={activePhotoTab}
+                onTabChange={setActivePhotoTab}
+                onFullscreen={setFullscreenPhoto}
+                title="Job Site Inspection Photo"
+                badgeText="100% Full View (Uncropped)"
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: "14px 26px",
+                background: "rgba(10,14,24,0.9)",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>
+                Contractor Field Execution & Infrastructure Task
+              </div>
+              <button
+                className="btn btn-ghost"
+                style={{ padding: "8px 22px", fontSize: 13, borderColor: "rgba(255,255,255,0.15)" }}
+                onClick={() => setSelectedTask(null)}
+              >
+                Close Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Photo Lightbox Modal */}
+      <FullscreenLightboxModal src={fullscreenPhoto} onClose={() => setFullscreenPhoto(null)} />
     </div>
   );
 }

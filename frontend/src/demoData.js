@@ -121,7 +121,7 @@ export const DEMO_COMPLAINTS = [
     contractorId: null,
     lat: 12.9345,
     lng: 77.6265,
-    photo: "/samples/sample1.jpg",
+    photo: "/potholes/pothole_1.jpg",
     aiData: {
       area_sqm: "1.850",
       depth_cm: "11.20",
@@ -158,7 +158,7 @@ export const DEMO_COMPLAINTS = [
     contractorId: "CON1",
     lat: 12.9719,
     lng: 77.6412,
-    photo: "/samples/sample2.jpg",
+    photo: "/potholes/pothole_2.jpg",
     aiData: {
       area_sqm: "1.420",
       depth_cm: "9.50",
@@ -196,7 +196,7 @@ export const DEMO_COMPLAINTS = [
     contractorId: "CON1",
     lat: 12.9121,
     lng: 77.6446,
-    photo: "/samples/sample3.jpg",
+    photo: "/potholes/pothole_3.jpg",
     aiData: {
       area_sqm: "0.860",
       depth_cm: "6.80",
@@ -248,7 +248,7 @@ export const DEMO_COMPLAINTS = [
     contractorId: "CON1",
     lat: 12.9304,
     lng: 77.6784,
-    photo: "/samples/sample4.jpg",
+    photo: "/potholes/pothole_4.jpg",
     completionPhoto: "/samples/sample_complete.jpg",
     completionTimestamp: "22 Oct 2026, 17:30",
     completionNote: "Excavated loose road crust, applied tack coat, laid 40mm DBM + 25mm BC, and compacted to municipal grade.",
@@ -283,7 +283,7 @@ export const DEMO_COMPLAINTS = [
     contractorId: "CON2",
     lat: 12.9298,
     lng: 77.5843,
-    photo: "/samples/sample2.jpg",
+    photo: "/potholes/pothole_5.jpg",
     aiData: {
       area_sqm: "0.620",
       depth_cm: "4.80",
@@ -314,7 +314,7 @@ export const DEMO_COMPLAINTS = [
     contractorId: null,
     lat: 13.0031,
     lng: 77.5714,
-    photo: "/samples/sample3.jpg",
+    photo: "/potholes/pothole_6.jpg",
     aiData: {
       area_sqm: "2.100",
       depth_cm: "14.10",
@@ -327,6 +327,17 @@ export const DEMO_COMPLAINTS = [
       { action: "Complaint filed & AI Analyzed", actor: "Vikram Sen", time: "23 Oct 2026, 16:05" },
     ],
   },
+];
+
+export const SAMPLE_POTHOLE_IMAGES = [
+  { id: 1, url: "/potholes/pothole_1.jpg", title: "Severe Deep Crater", area: "Koramangala 80ft Road", severity: "high", desc: "Large deep crater in high-traffic lane with broken asphalt rim." },
+  { id: 2, url: "/potholes/pothole_2.jpg", title: "Metro Pillar Edge Cavity", area: "Indiranagar 100ft Road", severity: "high", desc: "Edge road collapse along drainage curb creating vehicle hazard." },
+  { id: 3, url: "/potholes/pothole_3.jpg", title: "Surface Depressions & Cavity", area: "HSR Layout Sector 2", severity: "medium", desc: "Weathered bitumen surface crater with crumbling base aggregate." },
+  { id: 4, url: "/potholes/pothole_4.jpg", title: "Pothole Cluster & Fracture", area: "Bellandur Outer Ring Road", severity: "medium", desc: "Multiple adjacent asphalt voids forming dangerous water-retaining pool." },
+  { id: 5, url: "/potholes/pothole_5.jpg", title: "Pavement Edge Erosion", area: "Jayanagar 4th Block", severity: "low", desc: "Marginal unraveling of surface bitumen along northern curb line." },
+  { id: 6, url: "/potholes/pothole_6.jpg", title: "Deep Utility Trench", area: "Malleshwaram 8th Cross", severity: "high", desc: "Transverse settled trench across bus lane with 14cm depression." },
+  { id: 7, url: "/potholes/pothole_7.jpg", title: "Centerline Asphalt Rupture", area: "Whitefield Main Road", severity: "high", desc: "Expanding centerline fissure causing sudden lane swerving." },
+  { id: 8, url: "/potholes/pothole_8.jpg", title: "Cross-Junction Cavity", area: "Rajajinagar 1st Block", severity: "medium", desc: "Circular depression in intersection crossing with exposed ballast stones." },
 ];
 
 export const DEMO_AUDIT_LOGS = [
