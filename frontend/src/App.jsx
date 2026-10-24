@@ -1,38 +1,33 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
+import SmartRoadLandingPage from "./LandingPage.jsx";
+import { DEMO_CREDENTIALS, CONTRACTOR_ACCOUNTS, getFreshDemoData } from "./demoData.js";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-const ADMIN_CREDS = { email: "admin@smartroad.gov.in", password: "admin123" };
-const CONTRACTOR_ACCOUNTS = [
-  { id: "CON1", email: "rajesh@constructions.com", password: "rajesh123", name: "Rajesh Constructions", phone: "9876543210" },
-  { id: "CON2", email: "sharma@infra.com", password: "sharma123", name: "Sharma Infra", phone: "9845678901" },
-  { id: "CON3", email: "mnr@roads.com", password: "mnr123", name: "MNR Roads", phone: "9823456789" },
-];
+const ADMIN_CREDS = DEMO_CREDENTIALS.admin;
 const STORAGE_KEY = "smartroad_data_v2";
+
 const initialData = () => {
   try { 
     const s = localStorage.getItem(STORAGE_KEY); 
     if (s) {
       const parsed = JSON.parse(s);
-      // Migrate contractors to ensure budget fields exist
-      if (parsed.contractors) {
-        parsed.contractors = parsed.contractors.map(c => ({
-          ...c,
-          allocatedBudget: c.allocatedBudget ?? 0,
-          usedBudget: c.usedBudget ?? 0,
-          pendingBudgetRequests: c.pendingBudgetRequests ?? []
-        }));
+      // If complaints exist in storage, ensure contractor budget fields exist and return
+      if (parsed && Array.isArray(parsed.complaints) && parsed.complaints.length > 0) {
+        if (parsed.contractors) {
+          parsed.contractors = parsed.contractors.map(c => ({
+            ...c,
+            allocatedBudget: c.allocatedBudget ?? 0,
+            usedBudget: c.usedBudget ?? 0,
+            pendingBudgetRequests: c.pendingBudgetRequests ?? []
+          }));
+        }
+        return parsed;
       }
-      return parsed;
     } 
   } catch {}
-  return {
-    complaints: [],
-    auditLogs: [],
-    contractors: CONTRACTOR_ACCOUNTS.map(c => ({ ...c, active: true, allocatedBudget: 0, usedBudget: 0, pendingBudgetRequests: [] })),
-    budgetConfig: { total: 500000, rates: { cement: 450, sand: 180, aggregate: 320, labor: 850 } }
-  };
+  return getFreshDemoData();
 };
 
 // ─── GLOBAL STYLES ─────────────────────────────────────────────────────────────
@@ -722,46 +717,85 @@ function AIValidation({ onResult }) {
 }
 
 // ─── AUTH SCREEN ──────────────────────────────────────────────────────────────
-function AuthScreen({ onLogin }) {
-  const [role, setRole] = useState("user");
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
+function AuthScreen({ onLogin, onBack, initialRole = "user" }) {
+  const [role, setRole] = useState(initialRole);
   const [tab, setTab] = useState("login");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  
+  const getDemoCreds = (r) => DEMO_CREDENTIALS[r] || DEMO_CREDENTIALS.user;
+  const initialDemo = getDemoCreds(initialRole);
+
+  const [form, setForm] = useState({ 
+    name: "", 
+    email: initialDemo.email, 
+    password: initialDemo.password, 
+    confirm: "" 
+  });
+
+  useEffect(() => {
+    if (initialRole) {
+      setRole(initialRole);
+    }
+  }, [initialRole]);
+
+  // Automatically prefill demo credentials when role or tab changes
+  useEffect(() => {
+    if (tab === "login") {
+      const demo = DEMO_CREDENTIALS[role] || DEMO_CREDENTIALS.user;
+      setForm(f => ({ ...f, email: demo.email, password: demo.password }));
+    } else {
+      setForm({ name: "", email: "", password: "", confirm: "" });
+    }
+    setErr("");
+  }, [role, tab]);
 
   const handleSubmit = () => {
     setErr(""); setLoading(true);
     setTimeout(() => {
       setLoading(false);
       if (role === "admin") {
-        if (form.email === ADMIN_CREDS.email && form.password === ADMIN_CREDS.password) onLogin(role, { name: "Gov Admin", email: form.email });
-        else setErr("Invalid admin credentials.");
+        if (form.email === ADMIN_CREDS.email && form.password === ADMIN_CREDS.password) {
+          onLogin(role, { name: "Gov Admin", email: form.email });
+        } else {
+          setErr("Invalid admin credentials.");
+        }
         return;
       }
       if (role === "contractor") {
         const c = CONTRACTOR_ACCOUNTS.find(x => x.email === form.email && x.password === form.password);
-        if (c) onLogin(role, c);
-        else setErr("Invalid contractor credentials.");
+        if (c) {
+          onLogin(role, c);
+        } else {
+          setErr("Invalid contractor credentials.");
+        }
         return;
       }
-      const users = JSON.parse(localStorage.getItem("smartroad_users") || "[]");
+      // Citizen (user)
       if (tab === "login") {
+        if (form.email === DEMO_CREDENTIALS.user.email && form.password === DEMO_CREDENTIALS.user.password) {
+          onLogin("user", DEMO_CREDENTIALS.user.user);
+          return;
+        }
+        const users = JSON.parse(localStorage.getItem("smartroad_users") || "[]");
         const u = users.find(x => x.email === form.email && x.password === form.password);
-        if (u) onLogin("user", u);
-        else setErr("Invalid credentials.");
+        if (u) {
+          onLogin("user", u);
+        } else {
+          setErr("Invalid credentials.");
+        }
       } else {
         if (form.password !== form.confirm) { setErr("Passwords don't match."); return; }
-        if (users.find(x => x.email === form.email)) { setErr("Email already registered."); return; }
+        const users = JSON.parse(localStorage.getItem("smartroad_users") || "[]");
+        if (users.find(x => x.email === form.email) || form.email === DEMO_CREDENTIALS.user.email) {
+          setErr("Email already registered.");
+          return;
+        }
         const u = { id: "USR" + Date.now(), name: form.name, email: form.email, password: form.password };
         localStorage.setItem("smartroad_users", JSON.stringify([...users, u]));
         onLogin("user", u);
       }
-    }, 900);
-  };
-
-  const hints = {
-    admin: "admin@smartroad.gov.in · admin123",
-    contractor: "rajesh@constructions.com · rajesh123"
+    }, 700);
   };
 
   const roleConfig = {
@@ -774,8 +808,46 @@ function AuthScreen({ onLogin }) {
     <div style={{ minHeight: "100vh", display: "flex", position: "relative", zIndex: 1 }}>
       <div className="bg-grid" /><div className="bg-glow" />
 
+      {onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            position: "absolute",
+            top: 20,
+            left: 24,
+            zIndex: 50,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            background: "rgba(255, 255, 255, 0.05)",
+            border: "1px solid rgba(255, 255, 255, 0.14)",
+            borderRadius: 9999,
+            padding: "8px 16px",
+            color: "rgba(242, 240, 235, 0.85)",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            backdropFilter: "blur(12px)",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "#ffffff";
+            e.currentTarget.style.borderColor = "rgba(201, 168, 76, 0.45)";
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(242, 240, 235, 0.85)";
+            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+          }}
+        >
+          <span style={{ fontSize: 14 }}>←</span>
+          <span>Back to Home</span>
+        </button>
+      )}
+
       {/* Left panel */}
-      <div className="hide-m" style={{ width: "42%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "48px 52px", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="hide-m" style={{ width: "42%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: onBack ? "72px 52px 48px" : "48px 52px", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 9, background: "linear-gradient(135deg,var(--gold),#8a6c28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>⬡</div>
           <div>
@@ -832,8 +904,8 @@ function AuthScreen({ onLogin }) {
           {role === "user" && (
             <div style={{ display: "flex", gap: 0, marginBottom: 22, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
               {["login", "signup"].map(t => (
-                <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "8px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)", fontSize: 13, fontWeight: 600, color: tab === t ? "var(--gold2)" : "var(--tx-l3)", borderBottom: `2px solid ${tab === t ? "var(--gold)" : "transparent"}`, marginBottom: -1, transition: "all 0.2s" }}>
-                  {t === "login" ? "Sign In" : "Sign Up"}
+                <button key={t} onClick={() => { setTab(t); setErr(""); }} style={{ flex: 1, padding: "8px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)", fontSize: 13, fontWeight: 600, color: tab === t ? "var(--gold2)" : "var(--tx-l3)", borderBottom: `2px solid ${tab === t ? "var(--gold)" : "transparent"}`, marginBottom: -1, transition: "all 0.2s" }}>
+                  {t === "login" ? "Login" : "Sign Up"}
                 </button>
               ))}
             </div>
@@ -847,14 +919,16 @@ function AuthScreen({ onLogin }) {
           </div>
 
           {err && <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 9, background: "rgba(192,82,42,0.1)", border: "1px solid rgba(192,82,42,0.25)", fontSize: 13, color: "#e8835c" }}>{err}</div>}
-          {(role === "admin" || role === "contractor") && (
-            <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 9, background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.15)", fontSize: 12, color: "var(--tx-l3)" }}>
-              Demo — {hints[role]}
+          
+          {tab === "login" && (
+            <div style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.14)", fontSize: 12, color: "var(--tx-l3)", display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ color: "var(--gold)", fontSize: 10 }}>●</span>
+              <span>Demo credentials automatically prefilled for {roleConfig[role].label}</span>
             </div>
           )}
 
           <button className="btn btn-gold btn-lg" style={{ width: "100%", marginTop: 22, justifyContent: "center" }} onClick={handleSubmit} disabled={loading}>
-            {loading ? <><Spinner />Authenticating…</> : role === "user" ? (tab === "login" ? "Sign In →" : "Create Account →") : "Enter Portal →"}
+            {loading ? <><Spinner />Authenticating…</> : role === "user" ? (tab === "login" ? "Login →" : "Create Account →") : "Enter Portal →"}
           </button>
         </div>
       </div>
@@ -901,7 +975,7 @@ function Sidebar({ role, page, onNav, collapsed, toggle }) {
 }
 
 // ─── TOPBAR ────────────────────────────────────────────────────────────────────
-function TopBar({ page, user, onLogout }) {
+function TopBar({ page, user, onLogout, onResetDemo }) {
   const titles = { dashboard: "Dashboard", report: "Report a Pothole", myreports: "My Complaints", map: "Map View", route: "Route Check", notifs: "Notifications", complaints: "All Complaints", contractors: "Contractors", budget: "Budget Control", activity: "Activity Logs", priority: "Priority Queue", tasks: "My Tasks", expenses: "Submit Expenses", complete: "Mark Complete" };
   return (
     <div style={{ height: 56, display: "flex", alignItems: "center", paddingInline: 22, borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0, gap: 12 }}>
@@ -909,9 +983,19 @@ function TopBar({ page, user, onLogout }) {
         <h1 className="heading" style={{ fontSize: 15, fontWeight: 600, color: "var(--tx-l)" }}>{titles[page] || page}</h1>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {onResetDemo && (
+          <button
+            onClick={onResetDemo}
+            className="btn btn-ghost btn-sm"
+            style={{ fontSize: 11, color: "var(--gold)", borderColor: "rgba(201,168,76,0.25)" }}
+            title="Reset demo data to initial connected records"
+          >
+            ↺ Reset Demo
+          </button>
+        )}
         <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 99, background: "rgba(74,124,89,0.12)", border: "1px solid rgba(74,124,89,0.2)" }}>
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6ec98d", boxShadow: "0 0 6px #6ec98d" }} />
-          <span style={{ fontSize: 11, color: "#6ec98d", fontWeight: 600 }}>Live</span>
+          <span style={{ fontSize: 11, color: "#6ec98d", fontWeight: 600 }}>Demo</span>
         </div>
         <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.07)" }} />
         <span style={{ fontSize: 12.5, color: "var(--tx-l3)" }} className="hide-m">{user?.name || user?.email}</span>
@@ -3837,12 +3921,20 @@ function MarkComplete({ complaints, contractor, onUpdate, showToast }) {
 // ─── ROOT APP ──────────────────────────────────────────────────────────────────
 export default function App() {
   const [authed, setAuthed] = useState(false);
+  const [view, setView] = useState("landing");
+  const [authRole, setAuthRole] = useState("user");
   const [role, setRole] = useState("user");
   const [currentUser, setCurrentUser] = useState(null);
   const [page, setPage] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [toast, setToast] = useState(null);
   const [appData, setAppData] = useState(initialData);
+
+  useEffect(() => {
+    if (window.location.hash === "#auth" || window.location.search.includes("auth")) {
+      setView("auth");
+    }
+  }, []);
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch {}
@@ -3877,7 +3969,13 @@ export default function App() {
   const updateBudget = (config) => setAppData(d => ({ ...d, budgetConfig: { ...d.budgetConfig, ...config } }));
 
   const handleLogin = (r, u) => { setRole(r); setCurrentUser(u); setAuthed(true); setPage("dashboard"); };
-  const handleLogout = () => { setAuthed(false); setCurrentUser(null); setPage("dashboard"); };
+  const handleLogout = () => { setAuthed(false); setCurrentUser(null); setPage("dashboard"); setView("landing"); };
+  const handleResetDemo = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    const fresh = getFreshDemoData();
+    setAppData(fresh);
+    showToast("Demo environment reset with fresh connected records", "success");
+  };
 
   const { complaints, auditLogs, contractors, budgetConfig } = appData;
 
@@ -3920,12 +4018,29 @@ export default function App() {
       <div className="bg-glow" />
 
       {!authed ? (
-        <AuthScreen onLogin={handleLogin} />
+        view === "landing" ? (
+          <SmartRoadLandingPage
+            onNavigateToAuth={(selectedRole = "user") => {
+              setAuthRole(selectedRole);
+              setView("auth");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        ) : (
+          <AuthScreen
+            onLogin={handleLogin}
+            onBack={() => {
+              setView("landing");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            initialRole={authRole}
+          />
+        )
       ) : (
         <div style={{ display: "flex", height: "100vh", position: "relative", zIndex: 1 }}>
           <Sidebar role={role} page={page} onNav={setPage} collapsed={collapsed} toggle={() => setCollapsed(!collapsed)} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
-            <TopBar page={page} user={currentUser} onLogout={handleLogout} />
+            <TopBar page={page} user={currentUser} onLogout={handleLogout} onResetDemo={handleResetDemo} />
             <div style={{ flex: 1, overflowY: "auto", padding: "22px 26px" }} className="fu">
               {renderPage()}
             </div>

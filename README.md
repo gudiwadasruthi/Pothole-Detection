@@ -42,8 +42,35 @@ AI-Powered Pothole Detection & Transparent Road Management for Indian Infrastruc
 - [📜 License](#license)
 
 ---
+## 💡 About the Project
 
+**SmartRoad** is a full-stack, AI-driven civic infrastructure platform built for the Indian government ecosystem. It bridges the gap between citizens, government administrators, and road contractors through a transparent, accountable, and intelligent workflow.
+
+At its core, SmartRoad uses **YOLOv8 segmentation** to detect potholes from road images, **MiDaS** for relative depth estimation, and an automated **cost calculator** to estimate repair budgets — all exposed through a **FastAPI** REST backend. The React frontend provides role-based portals for citizens to report potholes, admins to manage and assign work, and contractors to track tasks and submit expenses.
+
+Every action is logged on an immutable audit trail, and an integrated **AI Pre-Validation** layer (powered by Claude Sonnet) filters out false complaints before they enter the system.
+
+<p align="right">(<a href="#smartroad---ai-powered-pothole-detection--road-management-platform">⬆ Back to top</a>)</p>
+
+---
+
+## ✨ Features
+
+- **🤖 AI Pothole Detection** — YOLOv8 segmentation model (`best.pt`) identifies potholes with pixel-level masks
+- **📏 Depth Estimation** — MiDaS (DPT_Large) calculates relative depth to classify pothole severity
+- **💰 Automated Cost Calculation** — Repair cost estimated using area, depth, and configurable material rates (cement, sand, aggregate, labor)
+- **🗺️ Interactive Map** — Real-time OpenStreetMap view with color-coded status markers (Leaflet.js)
+- **👥 Role-Based Portals** — Separate dashboards for Citizens, Gov. Admins, and Contractors
+- **🔍 AI Pre-Validation** — Claude Sonnet analyses complaint descriptions to reduce false reports
+- **📋 Immutable Audit Trail** — Every action (filing, assignment, completion, re-complaint) is logged with timestamps
+- **📦 Budget Management** — Admin-controlled fund locking and release with configurable material rates
+- **🗃️ SQLite Persistence** — Stores image runs, detected potholes, and GPS-based global pothole deduplication
+- **🐳 Docker Ready** — Containerized backend with pre-cached MiDaS model for fast cold starts
+- **☁️ Cloud Deployment** — Render (backend) + Vercel (frontend) with `render.yaml` config included
+
+<p align="right">(<a href="#smartroad---ai-powered-pothole-detection--road-management-platform">⬆ Back to top</a>)</p>
 ## ⚡ Quick Start
+---
 
 ### Backend
 ```bash
@@ -128,35 +155,6 @@ Open `http://localhost:5173` to view the app 🚀
 
 ---
 
-## 💡 About the Project
-
-**SmartRoad** is a full-stack, AI-driven civic infrastructure platform built for the Indian government ecosystem. It bridges the gap between citizens, government administrators, and road contractors through a transparent, accountable, and intelligent workflow.
-
-At its core, SmartRoad uses **YOLOv8 segmentation** to detect potholes from road images, **MiDaS** for relative depth estimation, and an automated **cost calculator** to estimate repair budgets — all exposed through a **FastAPI** REST backend. The React frontend provides role-based portals for citizens to report potholes, admins to manage and assign work, and contractors to track tasks and submit expenses.
-
-Every action is logged on an immutable audit trail, and an integrated **AI Pre-Validation** layer (powered by Claude Sonnet) filters out false complaints before they enter the system.
-
-<p align="right">(<a href="#smartroad---ai-powered-pothole-detection--road-management-platform">⬆ Back to top</a>)</p>
-
----
-
-## ✨ Features
-
-- **🤖 AI Pothole Detection** — YOLOv8 segmentation model (`best.pt`) identifies potholes with pixel-level masks
-- **📏 Depth Estimation** — MiDaS (DPT_Large) calculates relative depth to classify pothole severity
-- **💰 Automated Cost Calculation** — Repair cost estimated using area, depth, and configurable material rates (cement, sand, aggregate, labor)
-- **🗺️ Interactive Map** — Real-time OpenStreetMap view with color-coded status markers (Leaflet.js)
-- **👥 Role-Based Portals** — Separate dashboards for Citizens, Gov. Admins, and Contractors
-- **🔍 AI Pre-Validation** — Claude Sonnet analyses complaint descriptions to reduce false reports
-- **📋 Immutable Audit Trail** — Every action (filing, assignment, completion, re-complaint) is logged with timestamps
-- **📦 Budget Management** — Admin-controlled fund locking and release with configurable material rates
-- **🔁 Re-Complaint Workflow** — Citizens can reject unsatisfactory repairs with evidence upload
-- **🏗️ Priority Queue** — Automatic high-priority escalation for reopened complaints
-- **🗃️ SQLite Persistence** — Stores image runs, detected potholes, and GPS-based global pothole deduplication
-- **🐳 Docker Ready** — Containerized backend with pre-cached MiDaS model for fast cold starts
-- **☁️ Cloud Deployment** — Render (backend) + Vercel (frontend) with `render.yaml` config included
-
-<p align="right">(<a href="#smartroad---ai-powered-pothole-detection--road-management-platform">⬆ Back to top</a>)</p>
 
 ---
 
