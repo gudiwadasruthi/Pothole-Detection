@@ -9,7 +9,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from database.db import clear_all_records, fetch_all_records, init_db, get_user_profile, upsert_user_profile
+from database.db import (
+    clear_all_records,
+    fetch_all_records,
+    init_db,
+    get_user_profile,
+    upsert_user_profile,
+    create_contractor_registration,
+    authenticate_account,
+    get_contractor_applications,
+    review_contractor_application,
+    validate_contractor_assignment_eligibility,
+    get_all_contractors,
+)
 from services.pipeline import process_image
 from services.cost import get_rates, update_rates
 from datetime import datetime
@@ -363,4 +375,235 @@ def get_contractor_profile(
         "status": "success",
         "contractor": profile,
     }
+
+
+# ─── CONTRACTOR SELF-REGISTRATION & APPROVAL WORKFLOW ─────────────────────────
+
+class ContractorRegisterRequest(BaseModel):
+    name: str
+    contact_person: str
+    email: str
+    phone: str
+    password: str
+    confirm_password: str
+    service_area: str | None = None
+    specialization: str | None = None
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+    role: str | None = None
+
+
+class ApplicationDecisionRequest(BaseModel):
+    reason: str | None = None
+
+
+@app.post("/api/auth/register-contractor")
+def register_contractor(data: ContractorRegisterRequest) -> JSONResponse:
+    """
+    Public contractor self-registration endpoint.
+    Initializes account in PENDING state and disabled access.
+    Admin approval is strictly required before login.
+    """
+    # Server-side validations
+    name = data.name.strip()
+    contact = data.contact_person.strip()
+    email = data.email.strip().lower()
+    phone = data.phone.strip()
+    pwd = data.password
+    cpwd = data.confirm_password
+
+    if not name or len(name) < 2:
+        raise HTTPException(status_code=400, detail="Company or contractor name must be at least 2 characters long.")
+    if not contact or len(contact) < 2:
+        raise HTTPException(status_code=400, detail="Contact person name must be at least 2 characters long.")
+    if not email or "@" not in email or "." not in email:
+        raise HTTPException(status_code=400, detail="Please provide a valid business email address.")
+    if not phone or len(phone) < 7:
+        raise HTTPException(status_code=400, detail="Please provide a valid phone number.")
+    if not pwd or len(pwd) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long.")
+    if pwd != cpwd:
+        raise HTTPException(status_code=400, detail="Password and confirmation password do not match.")
+
+    try:
+        contractor = create_contractor_registration(
+            name=name,
+            contact_person=contact,
+            email=email,
+            phone=phone,
+            password=pwd,
+            service_area=data.service_area,
+            specialization=data.specialization,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return JSONResponse(
+        status_code=201,
+        content={
+            "status": "success",
+            "message": "Your contractor application has been submitted successfully and is awaiting review by a municipal administrator. You will be able to log in once your account is authorized.",
+            "contractor": contractor,
+        },
+    )
+
+
+@app.post("/api/auth/login")
+def login(data: LoginRequest) -> JSONResponse:
+    """
+    Unified authentication endpoint enforcing status restrictions.
+    Pending, rejected, or inactive contractors are strictly denied access.
+    """
+    if not data.email or not data.password:
+        raise HTTPException(status_code=400, detail="Email and password are required.")
+
+    code, resp = authenticate_account(
+        email=data.email,
+        password=data.password,
+        expected_role=data.role,
+    )
+
+    if code == 401:
+        raise HTTPException(status_code=401, detail=resp.get("error", "Invalid email or password."))
+
+    if code == 403:
+        # Return structured 403 with status detail (pending, rejected, disabled, role_mismatch)
+        return JSONResponse(status_code=403, content=resp)
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "success",
+            "user": resp,
+        },
+    )
+
+
+@app.get("/api/contractor-applications")
+def list_contractor_applications(
+    status: str = Query("all"),
+    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    x_user_role: str | None = Header(None, alias="X-User-Role"),
+) -> dict:
+    """
+    Admin-only endpoint to inspect contractor applications awaiting or with decisions.
+    """
+    if x_user_role != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden: Only administrators can access the contractor approval queue.")
+
+    apps = get_contractor_applications(status_filter=status)
+    return {
+        "status": "success",
+        "total": len(apps),
+        "applications": apps,
+    }
+
+
+@app.post("/api/contractor-applications/{contractor_id}/approve")
+def approve_contractor_application(
+    contractor_id: str,
+    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    x_user_role: str | None = Header(None, alias="X-User-Role"),
+) -> dict:
+    """
+    Admin-only endpoint to approve and activate a pending contractor account.
+    """
+    if x_user_role != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden: Only administrators can approve contractor applications.")
+
+    if x_user_id == contractor_id:
+        raise HTTPException(status_code=403, detail="Forbidden: Self-approval is strictly prohibited.")
+
+    try:
+        updated = review_contractor_application(
+            contractor_id=contractor_id,
+            decision="approve",
+            admin_id=x_user_id or "ADMIN",
+        )
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Contractor application not found.")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {
+        "status": "success",
+        "message": f"Contractor application approved and activated successfully for {updated.get('name')}.",
+        "application": updated,
+    }
+
+
+@app.post("/api/contractor-applications/{contractor_id}/reject")
+def reject_contractor_application(
+    contractor_id: str,
+    data: ApplicationDecisionRequest,
+    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    x_user_role: str | None = Header(None, alias="X-User-Role"),
+) -> dict:
+    """
+    Admin-only endpoint to reject a contractor application with a reason.
+    """
+    if x_user_role != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden: Only administrators can reject contractor applications.")
+
+    try:
+        updated = review_contractor_application(
+            contractor_id=contractor_id,
+            decision="reject",
+            admin_id=x_user_id or "ADMIN",
+            rejection_reason=data.reason,
+        )
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Contractor application not found.")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return {
+        "status": "success",
+        "message": f"Contractor application rejected.",
+        "application": updated,
+    }
+
+
+@app.get("/api/contractors")
+def list_contractors(
+    eligible_only: bool = Query(False),
+    x_user_role: str | None = Header(None, alias="X-User-Role"),
+) -> dict:
+    """
+    List contractors. If eligible_only=True, only approved & active contractors are returned.
+    """
+    contractors = get_all_contractors(eligible_only=eligible_only)
+    return {
+        "status": "success",
+        "total": len(contractors),
+        "contractors": contractors,
+    }
+
+
+@app.post("/api/contractors/{contractor_id}/validate-assignment")
+def validate_contractor_assignment(
+    contractor_id: str,
+    x_user_role: str | None = Header(None, alias="X-User-Role"),
+) -> dict:
+    """
+    Validates if a contractor is eligible for contract assignment before dispatch.
+    Pending, rejected, or inactive contractors are strictly rejected.
+    """
+    if x_user_role != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden: Only administrators can assign contracts.")
+
+    is_eligible, reason = validate_contractor_assignment_eligibility(contractor_id)
+    if not is_eligible:
+        raise HTTPException(status_code=400, detail=f"Contractor assignment ineligible: {reason}")
+
+    return {
+        "status": "success",
+        "eligible": True,
+        "contractor_id": contractor_id,
+        "message": "Contractor is approved, active, and eligible for contract assignment.",
+    }
+
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import SmartRoadLandingPage from "./LandingPage.jsx";
-import { DEMO_CREDENTIALS, CONTRACTOR_ACCOUNTS, getFreshDemoData, SAMPLE_POTHOLE_IMAGES } from "./demoData.js";
+import { DEMO_CREDENTIALS, CONTRACTOR_ACCOUNTS, getFreshDemoData } from "./demoData.js";
 
 // Helper to resolve pothole photo paths reliably across data URLs, dataset samples, and uploads
 export function getPhotoSrc(photo) {
@@ -27,10 +27,16 @@ const initialData = () => {
         if (parsed.contractors) {
           parsed.contractors = parsed.contractors.map(c => ({
             ...c,
+            approval_status: c.approval_status || (c.active !== false ? "approved" : "pending"),
             allocatedBudget: c.allocatedBudget ?? 0,
             usedBudget: c.usedBudget ?? 0,
             pendingBudgetRequests: c.pendingBudgetRequests ?? []
           }));
+          // Ensure sample pending contractor application exists in the queue
+          if (!parsed.contractors.some(c => c.id === "CON_PENDING_01")) {
+            const samplePending = CONTRACTOR_ACCOUNTS.find(c => c.id === "CON_PENDING_01");
+            if (samplePending) parsed.contractors.push(samplePending);
+          }
         }
         // Ensure real dataset photos are assigned to demo complaints
         parsed.complaints = parsed.complaints.map((comp, idx) => {
@@ -933,18 +939,24 @@ function AIValidation({ onResult }) {
 }
 
 // ─── AUTH SCREEN ──────────────────────────────────────────────────────────────
-function AuthScreen({ onLogin, onBack, initialRole = "user" }) {
+// ─── AUTH SCREEN ──────────────────────────────────────────────────────────────
+function AuthScreen({ onLogin, onBack, initialRole = "user", onContractorRegistered, contractors = [] }) {
   const [role, setRole] = useState(initialRole);
   const [tab, setTab] = useState("login");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [submittedContractorApp, setSubmittedContractorApp] = useState(null);
   
   const getDemoCreds = (r) => DEMO_CREDENTIALS[r] || DEMO_CREDENTIALS.user;
   const initialDemo = getDemoCreds(initialRole);
 
   const [form, setForm] = useState({ 
     name: "", 
+    contactPerson: "",
     email: initialDemo.email, 
+    phone: "",
+    serviceArea: "East Zone (Koramangala, Indiranagar, HSR Layout)",
+    specialization: "Bituminous Pavements & Emergency Surface Restoration",
     password: initialDemo.password, 
     confirm: "" 
   });
@@ -957,40 +969,198 @@ function AuthScreen({ onLogin, onBack, initialRole = "user" }) {
 
   // Automatically prefill demo credentials when role or tab changes
   useEffect(() => {
+    setSubmittedContractorApp(null);
+    setErr("");
     if (tab === "login") {
       const demo = DEMO_CREDENTIALS[role] || DEMO_CREDENTIALS.user;
-      setForm(f => ({ ...f, email: demo.email, password: demo.password }));
+      setForm(f => ({ 
+        ...f, 
+        email: demo.email, 
+        password: demo.password,
+        name: "",
+        contactPerson: "",
+        phone: "",
+        confirm: ""
+      }));
     } else {
-      setForm({ name: "", email: "", password: "", confirm: "" });
+      setForm({ 
+        name: "", 
+        contactPerson: "",
+        email: "", 
+        phone: "",
+        serviceArea: "East Zone (Koramangala, Indiranagar, HSR Layout)",
+        specialization: "Bituminous Pavements & Emergency Surface Restoration",
+        password: "", 
+        confirm: "" 
+      });
     }
-    setErr("");
   }, [role, tab]);
 
-  const handleSubmit = () => {
-    setErr(""); setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+  const handleSubmit = async () => {
+    setErr("");
+    setLoading(true);
+
+    try {
       if (role === "admin") {
         if (form.email === ADMIN_CREDS.email && form.password === ADMIN_CREDS.password) {
           onLogin(role, { name: "Gov Admin", email: form.email });
         } else {
           setErr("Invalid admin credentials.");
         }
+        setLoading(false);
         return;
       }
+
       if (role === "contractor") {
-        const c = CONTRACTOR_ACCOUNTS.find(x => x.email === form.email && x.password === form.password);
+        if (tab === "signup") {
+          // Client-side validations
+          if (!form.name.trim() || form.name.trim().length < 2) {
+            setErr("Please enter the registered company or contractor name (min 2 characters).");
+            setLoading(false);
+            return;
+          }
+          if (!form.contactPerson.trim() || form.contactPerson.trim().length < 2) {
+            setErr("Please enter the contact person's full name.");
+            setLoading(false);
+            return;
+          }
+          if (!form.email.trim() || !form.email.includes("@") || !form.email.includes(".")) {
+            setErr("Please enter a valid business email address.");
+            setLoading(false);
+            return;
+          }
+          if (!form.phone.trim() || form.phone.trim().length < 7) {
+            setErr("Please enter a valid phone number.");
+            setLoading(false);
+            return;
+          }
+          if (!form.password || form.password.length < 6) {
+            setErr("Password must be at least 6 characters long.");
+            setLoading(false);
+            return;
+          }
+          if (form.password !== form.confirm) {
+            setErr("Passwords do not match.");
+            setLoading(false);
+            return;
+          }
+
+          // Submit to backend
+          let newContractor = null;
+          try {
+            const res = await fetch("/api/auth/register-contractor", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: form.name.trim(),
+                contact_person: form.contactPerson.trim(),
+                email: form.email.trim().toLowerCase(),
+                phone: form.phone.trim(),
+                password: form.password,
+                confirm_password: form.confirm,
+                service_area: form.serviceArea,
+                specialization: form.specialization,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              setErr(data.detail || "Registration failed. Please review your information.");
+              setLoading(false);
+              return;
+            }
+            newContractor = data.contractor;
+          } catch {
+            // Offline fallback
+            newContractor = {
+              id: "CON_" + Date.now().toString(36).toUpperCase(),
+              name: form.name.trim(),
+              contactPerson: form.contactPerson.trim(),
+              email: form.email.trim().toLowerCase(),
+              phone: form.phone.trim(),
+              serviceArea: form.serviceArea,
+              specialization: form.specialization,
+              password: form.password,
+              approval_status: "pending",
+              active: false,
+              verified: false,
+              createdAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+              allocatedBudget: 0,
+              usedBudget: 0,
+              pendingBudgetRequests: [],
+            };
+          }
+
+          if (onContractorRegistered && newContractor) {
+            onContractorRegistered(newContractor);
+          }
+          setSubmittedContractorApp(newContractor);
+          setLoading(false);
+          return;
+        }
+
+        // Contractor Login
+        try {
+          const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: form.email.trim().toLowerCase(),
+              password: form.password,
+              role: "contractor",
+            }),
+          });
+          const data = await res.json();
+          if (res.status === 200 && data.user) {
+            onLogin("contractor", data.user);
+            setLoading(false);
+            return;
+          }
+          if (res.status === 403) {
+            if (data.status === "pending") {
+              setErr("⏳ Application Pending Approval: Your contractor registration is awaiting review by an authorized municipal Admin. Access will be enabled once authorized.");
+            } else if (data.status === "rejected") {
+              setErr(`❌ Application Rejected: ${data.rejection_reason || "Registration did not meet municipal requirements. Contact administration for details."}`);
+            } else if (data.status === "disabled") {
+              setErr("⛔ Account Deactivated: Your contractor account has been deactivated or suspended by municipal administration.");
+            } else {
+              setErr(data.error || "Access denied.");
+            }
+            setLoading(false);
+            return;
+          }
+          if (res.status === 401) {
+            setErr("Invalid contractor credentials. Please verify your email and password.");
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // Offline fallback: check localStorage contractors & CONTRACTOR_ACCOUNTS
+        }
+
+        const localList = contractors.length ? contractors : CONTRACTOR_ACCOUNTS;
+        const c = localList.find(x => x.email.toLowerCase() === form.email.trim().toLowerCase() && x.password === form.password);
         if (c) {
-          onLogin(role, c);
+          if (c.approval_status === "pending") {
+            setErr("⏳ Application Pending Approval: Your contractor registration is awaiting review by an authorized municipal Admin. Access will be enabled once authorized.");
+          } else if (c.approval_status === "rejected") {
+            setErr(`❌ Application Rejected: ${c.rejection_reason || "Registration did not meet municipal requirements. Contact administration for details."}`);
+          } else if (c.active === false) {
+            setErr("⛔ Account Deactivated: Your contractor account has been deactivated or suspended by municipal administration.");
+          } else {
+            onLogin("contractor", c);
+          }
         } else {
           setErr("Invalid contractor credentials.");
         }
+        setLoading(false);
         return;
       }
+
       // Citizen (user)
       if (tab === "login") {
         if (form.email === DEMO_CREDENTIALS.user.email && form.password === DEMO_CREDENTIALS.user.password) {
           onLogin("user", DEMO_CREDENTIALS.user.user);
+          setLoading(false);
           return;
         }
         const users = JSON.parse(localStorage.getItem("smartroad_users") || "[]");
@@ -1000,24 +1170,34 @@ function AuthScreen({ onLogin, onBack, initialRole = "user" }) {
         } else {
           setErr("Invalid credentials.");
         }
+        setLoading(false);
       } else {
-        if (form.password !== form.confirm) { setErr("Passwords don't match."); return; }
+        if (form.password !== form.confirm) { 
+          setErr("Passwords don't match."); 
+          setLoading(false);
+          return; 
+        }
         const users = JSON.parse(localStorage.getItem("smartroad_users") || "[]");
         if (users.find(x => x.email === form.email) || form.email === DEMO_CREDENTIALS.user.email) {
           setErr("Email already registered.");
+          setLoading(false);
           return;
         }
         const u = { id: "USR" + Date.now(), name: form.name, email: form.email, password: form.password };
         localStorage.setItem("smartroad_users", JSON.stringify([...users, u]));
         onLogin("user", u);
+        setLoading(false);
       }
-    }, 700);
+    } catch {
+      setErr("Authentication operation encountered an error.");
+      setLoading(false);
+    }
   };
 
   const roleConfig = {
     user: { icon: "⬡", label: "Citizen", sub: "Report & track road damage" },
     admin: { icon: "⬢", label: "Admin", sub: "Government oversight portal" },
-    contractor: { icon: "◈", label: "Contractor", sub: "Task & expense dashboard" },
+    contractor: { icon: "◈", label: "Contractor", sub: "Self-registration & task dashboard" },
   };
 
   return (
@@ -1076,9 +1256,9 @@ function AuthScreen({ onLogin, onBack, initialRole = "user" }) {
             Transparent roads,<br />accountable governance.
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {[["◈ AI-powered detection", "Claude analyses every pothole report for validity"],
-              ["⬡ Real-time accountability", "Every action logged on immutable audit trail"],
-              ["⬢ Smart budget control", "Automated fund locking and release on verification"]
+            {[["◈ Contractor Self-Registration", "Register your enterprise, create credentials & submit for Admin review"],
+              ["⬡ Administrative Oversight", "Municipal verification and secure account activation prior to dispatch"],
+              ["⬢ Smart budget control", "Automated fund locking and release on verified road restoration"]
             ].map(([t, d]) => (
               <div key={t} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <div style={{ fontSize: 14, color: "var(--gold)", flexShrink: 0, marginTop: 1 }}>{t.split(" ")[0]}</div>
@@ -1094,15 +1274,15 @@ function AuthScreen({ onLogin, onBack, initialRole = "user" }) {
       </div>
 
       {/* Right panel */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ width: "100%", maxWidth: 420 }} className="fu">
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "36px 24px", overflowY: "auto" }}>
+        <div style={{ width: "100%", maxWidth: 440 }} className="fu">
 
           {/* Role selector */}
-          <div style={{ display: "flex", gap: 6, marginBottom: 28, background: "rgba(255,255,255,0.03)", padding: 5, borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)" }}>
+          <div style={{ display: "flex", gap: 6, marginBottom: 24, background: "rgba(255,255,255,0.03)", padding: 5, borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)" }}>
             {(["user", "admin", "contractor"]).map(r => {
               const c = roleConfig[r];
               return (
-                <button key={r} onClick={() => { setRole(r); setErr(""); setTab("login"); }}
+                <button key={r} onClick={() => { setRole(r); setErr(""); setTab("login"); setSubmittedContractorApp(null); }}
                   style={{ flex: 1, padding: "10px 6px", borderRadius: 9, border: "none", cursor: "pointer", fontFamily: "var(--fb)", fontSize: 12, transition: "all 0.2s", background: role === r ? "rgba(201,168,76,0.16)" : "transparent", color: role === r ? "var(--gold2)" : "var(--tx-l3)" }}>
                   <div style={{ fontSize: 18, marginBottom: 3 }}>{c.icon}</div>
                   <div style={{ fontWeight: 700 }}>{c.label}</div>
@@ -1111,41 +1291,169 @@ function AuthScreen({ onLogin, onBack, initialRole = "user" }) {
             })}
           </div>
 
-          <div className="heading-i" style={{ fontSize: 30, marginBottom: 6 }}>
-            {role === "user" ? (tab === "login" ? "Welcome back" : "Join SmartRoad") : role === "admin" ? "Admin portal" : "Contractor hub"}
-          </div>
-          <div style={{ fontSize: 13, color: "var(--tx-l3)", marginBottom: 26 }}>{roleConfig[role].sub}</div>
+          {submittedContractorApp ? (
+            /* SUBMITTED CONTRACTOR CONFIRMATION SCREEN */
+            <div className="card" style={{ padding: 26, background: "rgba(17, 20, 31, 0.95)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 14 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "6px 14px", borderRadius: 20, background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", color: "var(--gold2)", fontSize: 12, fontWeight: 700, marginBottom: 16 }}>
+                <span>⏳</span>
+                <span>Application Pending Review</span>
+              </div>
 
-          {/* Tab switcher for user */}
-          {role === "user" && (
-            <div style={{ display: "flex", gap: 0, marginBottom: 22, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-              {["login", "signup"].map(t => (
-                <button key={t} onClick={() => { setTab(t); setErr(""); }} style={{ flex: 1, padding: "8px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)", fontSize: 13, fontWeight: 600, color: tab === t ? "var(--gold2)" : "var(--tx-l3)", borderBottom: `2px solid ${tab === t ? "var(--gold)" : "transparent"}`, marginBottom: -1, transition: "all 0.2s" }}>
-                  {t === "login" ? "Login" : "Sign Up"}
-                </button>
-              ))}
+              <div className="heading-i" style={{ fontSize: 24, marginBottom: 8, color: "var(--tx-l)" }}>
+                Application Received
+              </div>
+              <p style={{ fontSize: 13, color: "var(--tx-l2)", lineHeight: 1.6, marginBottom: 20 }}>
+                Thank you for applying. Your contractor account has been registered with reference ID <strong style={{ color: "var(--gold2)", fontFamily: "monospace" }}>{submittedContractorApp.id}</strong>.
+              </p>
+
+              <div style={{ padding: 14, background: "rgba(0,0,0,0.35)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 8, fontSize: 12.5, marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--tx-l3)" }}>Enterprise:</span>
+                  <span style={{ fontWeight: 600, color: "var(--tx-l)" }}>{submittedContractorApp.name}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--tx-l3)" }}>Contact Person:</span>
+                  <span style={{ fontWeight: 600, color: "var(--tx-l)" }}>{submittedContractorApp.contact_person || submittedContractorApp.contactPerson}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--tx-l3)" }}>Email:</span>
+                  <span style={{ fontWeight: 600, color: "var(--tx-l)" }}>{submittedContractorApp.email}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--tx-l3)" }}>Service Area:</span>
+                  <span style={{ fontWeight: 600, color: "var(--tx-l)" }}>{submittedContractorApp.service_area || submittedContractorApp.serviceArea}</span>
+                </div>
+              </div>
+
+              <div style={{ padding: "12px 14px", borderRadius: 8, background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", fontSize: 12, color: "var(--tx-l2)", lineHeight: 1.55, marginBottom: 22 }}>
+                🏛️ <strong>Municipal Review Policy:</strong> In accordance with public infrastructure regulations, contractor accounts remain inactive until an authorized municipal Admin reviews and approves your submission. You will be able to log in with your registered password once authorized.
+              </div>
+
+              <button
+                className="btn btn-gold"
+                style={{ width: "100%", justifyContent: "center" }}
+                onClick={() => {
+                  setSubmittedContractorApp(null);
+                  setTab("login");
+                }}
+              >
+                ← Return to Contractor Login
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="heading-i" style={{ fontSize: 28, marginBottom: 4 }}>
+                {role === "user" ? (tab === "login" ? "Welcome back" : "Join SmartRoad") : role === "admin" ? "Admin Portal" : (tab === "login" ? "Contractor Portal" : "Contractor Registration")}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--tx-l3)", marginBottom: 20 }}>{roleConfig[role].sub}</div>
+
+              {/* Tab switcher for Citizen and Contractor */}
+              {(role === "user" || role === "contractor") && (
+                <div style={{ display: "flex", gap: 0, marginBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                  {["login", "signup"].map(t => (
+                    <button key={t} onClick={() => { setTab(t); setErr(""); }} style={{ flex: 1, padding: "8px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--fb)", fontSize: 13, fontWeight: 600, color: tab === t ? "var(--gold2)" : "var(--tx-l3)", borderBottom: `2px solid ${tab === t ? "var(--gold)" : "transparent"}`, marginBottom: -1, transition: "all 0.2s" }}>
+                      {t === "login" ? "Login" : "Sign Up"}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* FORM FIELDS */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {/* Citizen Sign Up */}
+                {role === "user" && tab === "signup" && (
+                  <div>
+                    <label>Full Name</label>
+                    <input placeholder="Your full name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                  </div>
+                )}
+
+                {/* Contractor Sign Up Fields */}
+                {role === "contractor" && tab === "signup" && (
+                  <>
+                    <div>
+                      <label>Company / Contractor Name *</label>
+                      <input placeholder="e.g. Apex Road Solutions Ltd." value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                    </div>
+                    <div>
+                      <label>Contact Person Full Name *</label>
+                      <input placeholder="e.g. Vikram Patel (Project Director)" value={form.contactPerson} onChange={e => setForm({ ...form, contactPerson: e.target.value })} />
+                    </div>
+                    <div>
+                      <label>Official Business Email *</label>
+                      <input type="email" placeholder="contact@company.in" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                    </div>
+                    <div>
+                      <label>Contact Phone Number *</label>
+                      <input placeholder="+91 98765 43210" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                    </div>
+                    <div>
+                      <label>Municipal Operating Zone</label>
+                      <select value={form.serviceArea} onChange={e => setForm({ ...form, serviceArea: e.target.value })}>
+                        <option value="East Zone (Koramangala, Indiranagar, HSR Layout)">East Zone (Koramangala, Indiranagar, HSR Layout)</option>
+                        <option value="South Zone (Jayanagar, JP Nagar, BTM Layout)">South Zone (Jayanagar, JP Nagar, BTM Layout)</option>
+                        <option value="North Zone (Malleshwaram, Rajajinagar)">North Zone (Malleshwaram, Rajajinagar)</option>
+                        <option value="West Zone (Peenya, Yeshwanthpur)">West Zone (Peenya, Yeshwanthpur)</option>
+                        <option value="Central Zone (MG Road, Shivajinagar)">Central Zone (MG Road, Shivajinagar)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label>Primary Specialization</label>
+                      <select value={form.specialization} onChange={e => setForm({ ...form, specialization: e.target.value })}>
+                        <option value="Bituminous Pavements & Emergency Surface Restoration">Bituminous Pavements & Emergency Surface Restoration</option>
+                        <option value="Drainage Re-Compaction & Edge Sealing">Drainage Re-Compaction & Edge Sealing</option>
+                        <option value="Concrete Road Repair & High-Grade Bitumen Mixing">Concrete Road Repair & High-Grade Bitumen Mixing</option>
+                        <option value="Heavy Load Arterial Road Milling & Resurfacing">Heavy Load Arterial Road Milling & Resurfacing</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {/* Common Email field for login */}
+                {tab === "login" && (
+                  <div>
+                    <label>Email</label>
+                    <input type="email" placeholder="you@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                  </div>
+                )}
+
+                <div>
+                  <label>{tab === "signup" ? "Create Password (min 6 characters)" : "Password"}</label>
+                  <input type="password" placeholder="••••••••" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+                </div>
+
+                {tab === "signup" && (
+                  <div>
+                    <label>Confirm Password</label>
+                    <input type="password" placeholder="••••••••" value={form.confirm} onChange={e => setForm({ ...form, confirm: e.target.value })} />
+                  </div>
+                )}
+              </div>
+
+              {role === "contractor" && tab === "signup" && (
+                <div style={{ marginTop: 12, padding: "9px 12px", borderRadius: 8, background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.18)", fontSize: 11.5, color: "var(--tx-l3)", lineHeight: 1.5 }}>
+                  🛡️ <strong>Notice:</strong> Submitted registrations require administrative authorization. Your account remains pending until an authorized Admin approves it.
+                </div>
+              )}
+
+              {err && (
+                <div style={{ marginTop: 12, padding: "11px 14px", borderRadius: 9, background: "rgba(192,82,42,0.12)", border: "1px solid rgba(192,82,42,0.3)", fontSize: 12.5, color: "#e8835c", lineHeight: 1.5 }}>
+                  {err}
+                </div>
+              )}
+              
+              {tab === "login" && (
+                <div style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.14)", fontSize: 12, color: "var(--tx-l3)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: "var(--gold)", fontSize: 10 }}>●</span>
+                  <span>Demo credentials automatically prefilled for {roleConfig[role].label}</span>
+                </div>
+              )}
+
+              <button className="btn btn-gold btn-lg" style={{ width: "100%", marginTop: 20, justifyContent: "center" }} onClick={handleSubmit} disabled={loading}>
+                {loading ? <><Spinner />Processing…</> : role === "contractor" ? (tab === "signup" ? "Submit Contractor Application →" : "Login to Contractor Hub →") : role === "user" ? (tab === "login" ? "Login →" : "Create Account →") : "Enter Admin Portal →"}
+              </button>
+            </>
           )}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
-            {role === "user" && tab === "signup" && <div><label>Full Name</label><input placeholder="Your full name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>}
-            <div><label>Email</label><input type="email" placeholder="you@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
-            <div><label>Password</label><input type="password" placeholder="••••••••" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} /></div>
-            {role === "user" && tab === "signup" && <div><label>Confirm Password</label><input type="password" placeholder="••••••••" value={form.confirm} onChange={e => setForm({ ...form, confirm: e.target.value })} /></div>}
-          </div>
-
-          {err && <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 9, background: "rgba(192,82,42,0.1)", border: "1px solid rgba(192,82,42,0.25)", fontSize: 13, color: "#e8835c" }}>{err}</div>}
-          
-          {tab === "login" && (
-            <div style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.14)", fontSize: 12, color: "var(--tx-l3)", display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: "var(--gold)", fontSize: 10 }}>●</span>
-              <span>Demo credentials automatically prefilled for {roleConfig[role].label}</span>
-            </div>
-          )}
-
-          <button className="btn btn-gold btn-lg" style={{ width: "100%", marginTop: 22, justifyContent: "center" }} onClick={handleSubmit} disabled={loading}>
-            {loading ? <><Spinner />Authenticating…</> : role === "user" ? (tab === "login" ? "Login →" : "Create Account →") : "Enter Portal →"}
-          </button>
         </div>
       </div>
     </div>
@@ -1813,7 +2121,9 @@ function ReportPothole({ user, onAdd, showToast }) {
               }} />
               {form.photo ? (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <img src={getPhotoSrc(form.photo)} alt="Preview" style={{ height: 160, width: "100%", borderRadius: 8, objectFit: "cover", marginBottom: 12 }} />
+                  <div style={{ width: "100%", maxHeight: 220, minHeight: 140, background: "#080c16", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", marginBottom: 12, padding: 8 }}>
+                    <img src={getPhotoSrc(form.photo)} alt="Preview" style={{ maxWidth: "100%", maxHeight: 200, width: "auto", height: "auto", objectFit: "contain", borderRadius: 6 }} />
+                  </div>
                   <span style={{ fontSize: 13, color: "var(--gold)" }}>Tap to change or select another photo</span>
                 </div>
               ) : (
@@ -1824,63 +2134,6 @@ function ReportPothole({ user, onAdd, showToast }) {
                 </div>
               )}
             </label>
-
-            {/* Quick-Select from Public Pothole Dataset */}
-            <div style={{ marginTop: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--gold2)", display: "flex", alignItems: "center", gap: 6 }}>
-                  <span>📂</span> Or Select Real Pothole from Public Dataset:
-                </span>
-                <span style={{ fontSize: 11, color: "var(--tx-l3)" }}>Click to autofill sample</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(135px, 1fr))", gap: 8 }}>
-                {SAMPLE_POTHOLE_IMAGES.map((sample) => {
-                  const isSelected = form.photo === sample.url;
-                  return (
-                    <div
-                      key={sample.id}
-                      onClick={async () => {
-                        setForm(prev => ({
-                          ...prev,
-                          photo: sample.url,
-                          title: prev.title ? prev.title : sample.title,
-                          area: prev.area ? prev.area : sample.area,
-                          desc: prev.desc ? prev.desc : sample.desc,
-                        }));
-                        try {
-                          const res = await fetch(sample.url);
-                          const blob = await res.blob();
-                          const file = new File([blob], `dataset_sample_${sample.id}.jpg`, { type: "image/jpeg" });
-                          setForm(prev => ({ ...prev, rawFile: file }));
-                        } catch(e) {}
-                        showToast(`Selected dataset photo: ${sample.title}`, "info");
-                      }}
-                      style={{
-                        padding: 7,
-                        borderRadius: 8,
-                        background: isSelected ? "rgba(201,168,76,0.18)" : "#131826",
-                        border: `1px solid ${isSelected ? "var(--gold)" : "rgba(255,255,255,0.08)"}`,
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                      }}
-                      className="hover-lift"
-                    >
-                      <img
-                        src={sample.url}
-                        alt={sample.title}
-                        style={{ width: "100%", height: 64, objectFit: "cover", borderRadius: 6, marginBottom: 5 }}
-                      />
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--tx-l)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {sample.title}
-                      </div>
-                      <div style={{ fontSize: 10, color: sample.severity === "high" ? "#e8835c" : "#7aadda", textTransform: "uppercase", fontWeight: 700, marginTop: 2 }}>
-                        {sample.severity} Severity
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
           <div style={{ gridColumn: "1/-1" }}><label>Title *</label><input placeholder="e.g. Deep pothole near MG Road Junction" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
           <div><label>Area</label><input placeholder="e.g. Sector 12" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} /></div>
@@ -2546,11 +2799,27 @@ function AdminComplaints({ complaints, contractors, onUpdate, onUpdateContractor
     setSel(null);
   };
 
-  const assign = () => {
+  const assign = async () => {
     if (!conSel) { showToast("Select contractor", "warning"); return; }
     const con = contractors.find(c => c.id === conSel);
     if (!con) { showToast("Contractor not found", "error"); return; }
     
+    // Strict contract assignment eligibility check
+    const isApproved = con.approval_status === "approved" || (!con.approval_status && con.active !== false);
+    const isActive = con.active !== false;
+
+    if (!isApproved || !isActive) {
+      showToast(`Cannot assign: ${con.name} is ${con.approval_status || "inactive"}. Only approved & active contractors are eligible.`, "error");
+      return;
+    }
+
+    try {
+      await fetch(`/api/contractors/${con.id}/validate-assignment`, {
+        method: "POST",
+        headers: { "X-User-Role": "admin" },
+      });
+    } catch {}
+
     // Just assign the complaint without budget deduction
     doAction("Assigned", { 
       status: "assigned", 
@@ -2803,17 +3072,19 @@ function AdminComplaints({ complaints, contractors, onUpdate, onUpdateContractor
                     Dispatch to Infrastructure Contractor
                   </label>
                   <select value={conSel} onChange={e => setConSel(e.target.value)} style={{ marginBottom: 10 }}>
-                    <option value="">Select contractor partner</option>
-                    {contractors.map(c => {
-                      const used = c.usedBudget || 0;
-                      const allocated = c.allocatedBudget || 0;
-                      const remaining = Math.max(0, allocated - used);
-                      return (
-                        <option key={c.id} value={c.id}>
-                          {c.name} (₹{remaining.toLocaleString()} balance)
-                        </option>
-                      );
-                    })}
+                    <option value="">Select approved contractor partner</option>
+                    {contractors
+                      .filter(c => (c.approval_status === "approved" || (!c.approval_status && c.active !== false)) && c.active !== false)
+                      .map(c => {
+                        const used = c.usedBudget || 0;
+                        const allocated = c.allocatedBudget || 0;
+                        const remaining = Math.max(0, allocated - used);
+                        return (
+                          <option key={c.id} value={c.id}>
+                            {c.name} (₹{remaining.toLocaleString()} balance)
+                          </option>
+                        );
+                      })}
                   </select>
 
                   <div style={{ display: "flex", gap: 8 }}>
@@ -3358,11 +3629,107 @@ function CostCalculationBreakdown({ aiData, costBreakdown, rates }) {
   );
 }
 function AdminContractors({ contractors, complaints, onAddContractor, onUpdateContractor, showToast }) {
+  const [currentTab, setCurrentTab] = useState("directory"); // "directory" or "queue"
+  const [queueFilter, setQueueFilter] = useState("pending"); // "pending", "approved", "rejected", "all"
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewingContractor, setViewingContractor] = useState(null);
   const [viewingJobs, setViewingJobs] = useState(null);
+  const [inspectingApp, setInspectingApp] = useState(null);
+  const [rejectingApp, setRejectingApp] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", allocatedBudget: "", contactPerson: "", serviceArea: "", specialization: "" });
   const [showBudgetRequests, setShowBudgetRequests] = useState(false);
+
+  const pendingApps = contractors.filter(c => c.approval_status === "pending" || (!c.approval_status && c.active === false && c.approval_status !== "rejected"));
+  const approvedContractors = contractors.filter(c => c.approval_status === "approved" || (!c.approval_status && c.active !== false));
+  const rejectedApps = contractors.filter(c => c.approval_status === "rejected");
+
+  const queueFilteredList = contractors.filter(c => {
+    const status = c.approval_status || (c.active !== false ? "approved" : "pending");
+    if (queueFilter === "all") return true;
+    return status === queueFilter;
+  });
+
+  const handleApprove = async (contractor) => {
+    setActionLoading(true);
+    try {
+      await fetch(`/api/contractor-applications/${contractor.id}/approve`, {
+        method: "POST",
+        headers: {
+          "X-User-Role": "admin",
+          "X-User-Id": "ADM_001",
+        },
+      });
+    } catch {}
+
+    const nowStr = new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' });
+    const updated = {
+      ...contractor,
+      approval_status: "approved",
+      active: true,
+      verified: true,
+      reviewedBy: "Gov Admin (ADM_001)",
+      reviewedAt: nowStr,
+    };
+
+    onUpdateContractor(updated, {
+      actor: "Gov Admin",
+      action: `Approved & activated contractor registration for ${contractor.name} (${contractor.id})`,
+      type: "contractor_approve"
+    });
+
+    showToast(`Approved & activated contractor ${contractor.name}`, "success");
+    if (inspectingApp?.id === contractor.id) {
+      setInspectingApp(updated);
+    }
+    setActionLoading(false);
+  };
+
+  const handleReject = async () => {
+    if (!rejectingApp) return;
+    if (!rejectionReason.trim()) {
+      showToast("Please provide a rejection reason.", "error");
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await fetch(`/api/contractor-applications/${rejectingApp.id}/reject`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-Role": "admin",
+          "X-User-Id": "ADM_001",
+        },
+        body: JSON.stringify({ reason: rejectionReason.trim() }),
+      });
+    } catch {}
+
+    const nowStr = new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' });
+    const updated = {
+      ...rejectingApp,
+      approval_status: "rejected",
+      active: false,
+      rejection_reason: rejectionReason.trim(),
+      reviewedBy: "Gov Admin (ADM_001)",
+      reviewedAt: nowStr,
+    };
+
+    onUpdateContractor(updated, {
+      actor: "Gov Admin",
+      action: `Rejected contractor registration for ${rejectingApp.name}: ${rejectionReason.trim()}`,
+      type: "contractor_reject"
+    });
+
+    showToast(`Rejected contractor application for ${rejectingApp.name}`, "info");
+    if (inspectingApp?.id === rejectingApp.id) {
+      setInspectingApp(updated);
+    }
+    setRejectingApp(null);
+    setRejectionReason("");
+    setActionLoading(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -3382,25 +3749,22 @@ function AdminContractors({ contractors, complaints, onAddContractor, onUpdateCo
       password: formData.password || "contractor" + Math.random().toString(36).substr(2, 6),
       active: true,
       verified: true,
+      approval_status: "approved",
       createdAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
       allocatedBudget: formData.allocatedBudget !== "" ? Number(formData.allocatedBudget) : 50000,
       usedBudget: 0,
       pendingBudgetRequests: []
     };
 
-    onAddContractor(contractor);
+    onAddContractor(contractor, {
+      actor: "Gov Admin",
+      action: `Directly onboarded contractor partner ${contractor.name}`,
+      type: "contractor_onboard"
+    });
     showToast("Contractor onboarded successfully", "success");
-    sendContractorNotification(contractor, 'new');
 
     setFormData({ name: "", email: "", phone: "", password: "", allocatedBudget: "", contactPerson: "", serviceArea: "", specialization: "" });
     setShowAddModal(false);
-  };
-
-  const sendContractorNotification = (contractor, action) => {
-    const subject = 'SmartRoad Contractor Account Created';
-    const body = `Dear ${contractor.name},\nYour SmartRoad contractor account has been created.\nLogin Details: Email: ${contractor.email}, Phone: ${contractor.phone}`;
-    console.log('EMAIL NOTIFICATION:', { subject, body, to: contractor.email });
-    showToast(`Credentials dispatched to ${contractor.email}`, "success");
   };
 
   const handleToggleActive = (contractor) => {
@@ -3471,14 +3835,16 @@ function AdminContractors({ contractors, complaints, onAddContractor, onUpdateCo
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      {/* Header and Controls */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <div className="heading-i" style={{ fontSize: 26, marginBottom: 4 }}>Contractor Directory</div>
-          <div style={{ fontSize: 14, color: "var(--tx-l2)" }}>
-            {contractors.length} registered municipal contractors · View-only oversight directory
+          <div className="heading-i" style={{ fontSize: 26, marginBottom: 4 }}>Contractor Management</div>
+          <div style={{ fontSize: 13.5, color: "var(--tx-l2)" }}>
+            {approvedContractors.length} active contractors · {pendingApps.length} pending approval requests
           </div>
         </div>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           {allPendingRequests.length > 0 && (
             <button 
               className="btn btn-gold" 
@@ -3505,92 +3871,668 @@ function AdminContractors({ contractors, complaints, onAddContractor, onUpdateCo
               </span>
             </button>
           )}
-          <button className="btn btn-gold" onClick={() => setShowAddModal(true)}>
-            + Onboard Contractor
+
+          <button className="btn btn-ghost" onClick={() => setShowAddModal(true)} style={{ fontSize: 13 }}>
+            + Direct Register Partner
           </button>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(310px,1fr))", gap: 14 }}>
-        {contractors.map((c) => {
-          const assigned = complaints.filter(x => x.contractorId === c.id || x.contractor === c.name);
-          const done = assigned.filter(x => x.status === "completed");
-          const budgetUsed = c.usedBudget || 0;
-          const allocated = c.allocatedBudget || 0;
-          const remaining = allocated - budgetUsed;
-          const budgetPercent = allocated > 0 ? (budgetUsed / allocated * 100) : 0;
-          return (
-            <div key={c.id} className="card" style={{ padding: 22, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.08))", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>◈</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="heading" style={{ fontSize: 15, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
-                    <div style={{ fontSize: 12, color: "var(--tx-l2)", marginTop: 2 }}>{c.contactPerson ? `👤 ${c.contactPerson}` : c.email}</div>
-                  </div>
-                  <span className={`badge ${c.active !== false ? "b-done" : "b-reject"}`}>
-                    {c.active !== false ? "Active" : "Inactive"}
-                  </span>
-                </div>
+      {/* Primary Tab Switcher: Approved Directory vs Contractor Approval Requests Queue */}
+      <div style={{ display: "flex", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 2 }}>
+        <button
+          onClick={() => setCurrentTab("directory")}
+          style={{
+            padding: "10px 18px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontFamily: "var(--fb)",
+            fontSize: 14,
+            fontWeight: 600,
+            color: currentTab === "directory" ? "var(--gold2)" : "var(--tx-l3)",
+            borderBottom: `2.5px solid ${currentTab === "directory" ? "var(--gold)" : "transparent"}`,
+            marginBottom: -2,
+            transition: "all 0.2s",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span>◈ Approved Directory</span>
+          <span style={{ fontSize: 11, padding: "2px 7px", borderRadius: 10, background: currentTab === "directory" ? "rgba(201,168,76,0.2)" : "rgba(255,255,255,0.06)", color: currentTab === "directory" ? "var(--gold2)" : "var(--tx-l3)" }}>
+            {approvedContractors.length}
+          </span>
+        </button>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
-                  {[["Active", assigned.filter(x => x.status !== "completed").length, "#7aadda"], ["Done", done.length, "#6ec98d"], ["Allocated", "₹" + Math.floor(allocated / 1000) + "K", "#e8c96a"]].map(([l, v, col]) => (
-                    <div key={l} style={{ textAlign: "center", padding: "10px 4px", background: "rgba(255,255,255,0.03)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.07)" }}>
-                      <div style={{ fontWeight: 700, fontSize: 16, color: col }}>{v}</div>
-                      <div style={{ fontSize: 10.5, color: "var(--tx-l2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{l}</div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Budget Progress Bar */}
-                {allocated > 0 && (
-                  <div style={{ marginBottom: 14 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 6 }}>
-                      <span style={{ color: "var(--tx-l2)" }}>Budget Usage</span>
-                      <span style={{ color: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d", fontWeight: 600, fontSize: 12.5 }}>
-                        ₹{Math.floor(budgetUsed / 1000)}K / ₹{Math.floor(allocated / 1000)}K
+        <button
+          onClick={() => setCurrentTab("queue")}
+          style={{
+            padding: "10px 18px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontFamily: "var(--fb)",
+            fontSize: 14,
+            fontWeight: 600,
+            color: currentTab === "queue" ? "var(--gold2)" : "var(--tx-l3)",
+            borderBottom: `2.5px solid ${currentTab === "queue" ? "var(--gold)" : "transparent"}`,
+            marginBottom: -2,
+            transition: "all 0.2s",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span>⏳ Contractor Approval Requests</span>
+          {pendingApps.length > 0 ? (
+            <span style={{ fontSize: 11, padding: "2px 7px", borderRadius: 10, background: "#c0522a", color: "#ffffff", fontWeight: 700 }}>
+              {pendingApps.length} pending
+            </span>
+          ) : (
+            <span style={{ fontSize: 11, padding: "2px 7px", borderRadius: 10, background: "rgba(255,255,255,0.06)", color: "var(--tx-l3)" }}>
+              0
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* TAB 1: APPROVED DIRECTORY */}
+      {currentTab === "directory" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(310px,1fr))", gap: 14 }}>
+          {approvedContractors.length === 0 ? (
+            <div className="card" style={{ padding: 44, textAlign: "center", color: "var(--tx-l3)", gridColumn: "1 / -1" }}>
+              <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.3 }}>◈</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--tx-l2)" }}>No Approved Contractors Yet</div>
+              <div style={{ fontSize: 13, marginTop: 4 }}>Review and approve pending registrations in the Contractor Approval Requests queue.</div>
+            </div>
+          ) : (
+            approvedContractors.map((c) => {
+              const assigned = complaints.filter(x => x.contractorId === c.id || x.contractor === c.name);
+              const done = assigned.filter(x => x.status === "completed");
+              const budgetUsed = c.usedBudget || 0;
+              const allocated = c.allocatedBudget || 0;
+              const remaining = allocated - budgetUsed;
+              const budgetPercent = allocated > 0 ? (budgetUsed / allocated * 100) : 0;
+              return (
+                <div key={c.id} className="card" style={{ padding: 22, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.08))", border: "1px solid rgba(201,168,76,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>◈</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="heading" style={{ fontSize: 15, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
+                        <div style={{ fontSize: 12, color: "var(--tx-l2)", marginTop: 2 }}>{c.contactPerson ? `👤 ${c.contactPerson}` : c.email}</div>
+                      </div>
+                      <span className={`badge ${c.active !== false ? "b-done" : "b-reject"}`}>
+                        {c.active !== false ? "Active" : "Inactive"}
                       </span>
                     </div>
-                    <div className="pbar" style={{ height: 6 }}>
-                      <div className="pfill" style={{ 
-                        width: `${Math.min(budgetPercent, 100)}%`, 
-                        background: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d" 
-                      }} />
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4 }}>
-                      Remaining: ₹{Math.max(0, remaining).toLocaleString()}
-                    </div>
-                  </div>
-                )}
-                
-                <div style={{ fontSize: 12.5, color: "var(--tx-l2)", marginBottom: 8 }}>📱 {c.phone}</div>
-                {c.serviceArea && (
-                  <div style={{ fontSize: 11.5, color: "var(--tx-l3)", marginBottom: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    📍 {c.serviceArea}
-                  </div>
-                )}
-              </div>
 
-              {/* View-Only Directory Controls */}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => setViewingContractor(c)} style={{ flex: 1 }}>
-                  View Profile
-                </button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setViewingJobs(c)} style={{ flex: 1 }}>
-                  Jobs ({assigned.length})
-                </button>
-                <button 
-                  className="btn btn-ghost btn-sm" 
-                  style={{ color: c.active !== false ? "#e8835c" : "#6ec98d" }} 
-                  onClick={() => handleToggleActive(c)}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+                      {[["Active", assigned.filter(x => x.status !== "completed").length, "#7aadda"], ["Done", done.length, "#6ec98d"], ["Allocated", "₹" + Math.floor(allocated / 1000) + "K", "#e8c96a"]].map(([l, v, col]) => (
+                        <div key={l} style={{ textAlign: "center", padding: "10px 4px", background: "rgba(255,255,255,0.03)", borderRadius: 9, border: "1px solid rgba(255,255,255,0.07)" }}>
+                          <div style={{ fontWeight: 700, fontSize: 16, color: col }}>{v}</div>
+                          <div style={{ fontSize: 10.5, color: "var(--tx-l2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{l}</div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Budget Progress Bar */}
+                    {allocated > 0 && (
+                      <div style={{ marginBottom: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 6 }}>
+                          <span style={{ color: "var(--tx-l2)" }}>Budget Usage</span>
+                          <span style={{ color: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d", fontWeight: 600, fontSize: 12.5 }}>
+                            ₹{Math.floor(budgetUsed / 1000)}K / ₹{Math.floor(allocated / 1000)}K
+                          </span>
+                        </div>
+                        <div className="pbar" style={{ height: 6 }}>
+                          <div className="pfill" style={{ 
+                            width: `${Math.min(budgetPercent, 100)}%`, 
+                            background: budgetPercent > 90 ? "#e8835c" : budgetPercent > 70 ? "#e8c96a" : "#6ec98d" 
+                          }} />
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 4 }}>
+                          Remaining: ₹{Math.max(0, remaining).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div style={{ fontSize: 12.5, color: "var(--tx-l2)", marginBottom: 8 }}>📱 {c.phone}</div>
+                    {c.serviceArea && (
+                      <div style={{ fontSize: 11.5, color: "var(--tx-l3)", marginBottom: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        📍 {c.serviceArea}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Directory Controls */}
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setViewingContractor(c)} style={{ flex: 1 }}>
+                      View Profile
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setViewingJobs(c)} style={{ flex: 1 }}>
+                      Jobs ({assigned.length})
+                    </button>
+                    <button 
+                      className="btn btn-ghost btn-sm" 
+                      style={{ color: c.active !== false ? "#e8835c" : "#6ec98d" }} 
+                      onClick={() => handleToggleActive(c)}
+                    >
+                      {c.active !== false ? "Deactivate" : "Activate"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* TAB 2: CONTRACTOR APPROVAL REQUESTS QUEUE */}
+      {currentTab === "queue" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Status Filters */}
+          <div className="surface" style={{ padding: "12px 16px", borderRadius: 12 }}>
+            <div style={{ display: "flex", gap: 7, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 11, color: "var(--tx-l3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>Application Status</span>
+              {[
+                ["pending", `Pending (${pendingApps.length})`],
+                ["approved", `Approved (${approvedContractors.length})`],
+                ["rejected", `Rejected (${rejectedApps.length})`],
+                ["all", `All (${contractors.length})`],
+              ].map(([val, label]) => (
+                <button
+                  key={val}
+                  className={`chip ${queueFilter === val ? "on" : ""}`}
+                  onClick={() => setQueueFilter(val)}
                 >
-                  {c.active !== false ? "Deactivate" : "Activate"}
+                  {label}
                 </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Applications Cards */}
+          {queueFilteredList.length === 0 ? (
+            <div className="card" style={{ padding: 48, textAlign: "center", color: "var(--tx-l3)" }}>
+              <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.3 }}>⏳</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--tx-l2)" }}>
+                No applications matching filter "{queueFilter}"
+              </div>
+              <div style={{ fontSize: 13, marginTop: 4 }}>
+                Contractors who self-register will appear in this administrative approval queue.
               </div>
             </div>
-          );
-        })}
-      </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 14 }}>
+              {queueFilteredList.map((app) => {
+                const status = app.approval_status || (app.active !== false ? "approved" : "pending");
+                return (
+                  <div
+                    key={app.id}
+                    className="card"
+                    style={{
+                      padding: 20,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      border: status === "pending" ? "1px solid rgba(201,168,76,0.35)" : "1px solid rgba(255,255,255,0.08)",
+                      background: status === "pending" ? "rgba(17, 20, 31, 0.98)" : "rgba(13, 16, 26, 0.95)",
+                    }}
+                  >
+                    <div>
+                      {/* Top Bar: Company Name & Status Badge */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span className="heading" style={{ fontSize: 16, fontWeight: 700, color: "var(--tx-l)" }}>
+                              {app.name}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 11, color: "var(--gold2)", fontFamily: "monospace", marginTop: 2 }}>
+                            {app.id}
+                          </div>
+                        </div>
+
+                        {status === "approved" ? (
+                          <span className="badge b-done">✓ Approved & Active</span>
+                        ) : status === "rejected" ? (
+                          <span className="badge b-reject">✕ Rejected</span>
+                        ) : (
+                          <span className="badge b-pend" style={{ color: "#e8c96a", borderColor: "rgba(232,201,106,0.4)", background: "rgba(232,201,106,0.12)" }}>
+                            ⏳ Pending Review
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Details Grid */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 12.5, color: "var(--tx-l2)", marginBottom: 14 }}>
+                        <div>👤 <strong>Contact:</strong> {app.contactPerson || app.contact_person || "Designated Lead"}</div>
+                        <div>✉️ <strong>Email:</strong> {app.email}</div>
+                        <div>📱 <strong>Phone:</strong> {app.phone}</div>
+                        {app.serviceArea && <div>📍 <strong>Operating Area:</strong> {app.serviceArea}</div>}
+                        {app.specialization && <div>🛠️ <strong>Specialization:</strong> {app.specialization}</div>}
+                        <div style={{ fontSize: 11, color: "var(--tx-l3)", marginTop: 2 }}>
+                          📅 Submitted: {app.createdAt || app.created_at || "Recent registration"}
+                        </div>
+                      </div>
+
+                      {/* Rejection notice if rejected */}
+                      {status === "rejected" && app.rejection_reason && (
+                        <div style={{ padding: "10px 12px", borderRadius: 8, background: "rgba(192,82,42,0.12)", border: "1px solid rgba(192,82,42,0.28)", fontSize: 12, color: "#e8835c", marginBottom: 14 }}>
+                          <strong>Reason for Rejection:</strong> {app.rejection_reason}
+                        </div>
+                      )}
+
+                      {/* Review audit metadata if approved */}
+                      {status === "approved" && app.reviewedBy && (
+                        <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(110,201,141,0.06)", border: "1px solid rgba(110,201,141,0.18)", fontSize: 11.5, color: "#6ec98d", marginBottom: 14 }}>
+                          ✓ Reviewed & activated by {app.reviewedBy} on {app.reviewedAt}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Bar */}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ flex: 1 }}
+                        onClick={() => setInspectingApp(app)}
+                      >
+                        Inspect Dossier
+                      </button>
+
+                      {status === "pending" && (
+                        <>
+                          <button
+                            className="btn btn-gold btn-sm"
+                            style={{ flex: 1.2 }}
+                            onClick={() => handleApprove(app)}
+                            disabled={actionLoading}
+                          >
+                            ✓ Approve & Activate
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: "#e8835c", borderColor: "rgba(192,82,42,0.3)" }}
+                            onClick={() => {
+                              setRejectingApp(app);
+                              setRejectionReason("");
+                            }}
+                            disabled={actionLoading}
+                          >
+                            ✕ Reject
+                          </button>
+                        </>
+                      )}
+
+                      {status === "rejected" && (
+                        <button
+                          className="btn btn-gold btn-sm"
+                          style={{ flex: 1 }}
+                          onClick={() => handleApprove(app)}
+                          disabled={actionLoading}
+                        >
+                          Re-evaluate & Approve
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL 1: Inspect Contractor Application Dossier */}
+      {inspectingApp && (
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(3, 6, 14, 0.88)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setInspectingApp(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 600,
+              background: "linear-gradient(165deg, #131929 0%, #0d121d 100%)",
+              border: "1px solid rgba(201,168,76,0.35)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.92)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.35)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "var(--gold2)" }}>◈</div>
+                <div>
+                  <div className="heading" style={{ fontSize: 18, fontWeight: 700 }}>Contractor Application Dossier</div>
+                  <div style={{ fontSize: 12, color: "var(--tx-l3)" }}>Official Self-Registration Submission · Ref: {inspectingApp.id}</div>
+                </div>
+              </div>
+              <button onClick={() => setInspectingApp(null)} style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--tx-l)", cursor: "pointer" }}>✕</button>
+            </div>
+
+            <div style={{ padding: "22px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderRadius: 10, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div>
+                  <div style={{ fontSize: 11, color: "var(--tx-l3)", textTransform: "uppercase", fontWeight: 700 }}>Company Name</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "var(--tx-l)" }}>{inspectingApp.name}</div>
+                </div>
+                <div>
+                  {inspectingApp.approval_status === "approved" ? (
+                    <span className="badge b-done">✓ Approved & Active</span>
+                  ) : inspectingApp.approval_status === "rejected" ? (
+                    <span className="badge b-reject">✕ Rejected</span>
+                  ) : (
+                    <span className="badge b-pend">⏳ Pending Review</span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ fontSize: 10.5, color: "var(--tx-l3)", fontWeight: 700, textTransform: "uppercase" }}>Contact Person</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--tx-l)", marginTop: 2 }}>{inspectingApp.contactPerson || inspectingApp.contact_person || "—"}</div>
+                </div>
+                <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ fontSize: 10.5, color: "var(--tx-l3)", fontWeight: 700, textTransform: "uppercase" }}>Official Phone</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--tx-l)", marginTop: 2 }}>{inspectingApp.phone || "—"}</div>
+                </div>
+                <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ fontSize: 10.5, color: "var(--tx-l3)", fontWeight: 700, textTransform: "uppercase" }}>Business Email</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--tx-l)", marginTop: 2 }}>{inspectingApp.email}</div>
+                </div>
+                <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ fontSize: 10.5, color: "var(--tx-l3)", fontWeight: 700, textTransform: "uppercase" }}>Submission Date</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--tx-l)", marginTop: 2 }}>{inspectingApp.createdAt || inspectingApp.created_at || "—"}</div>
+                </div>
+              </div>
+
+              <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ fontSize: 10.5, color: "var(--tx-l3)", fontWeight: 700, textTransform: "uppercase" }}>Operating Zone & Coverage</div>
+                <div style={{ fontSize: 13, color: "var(--tx-l)", marginTop: 2 }}>{inspectingApp.serviceArea || inspectingApp.service_area || "City-wide municipal coverage"}</div>
+              </div>
+
+              <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ fontSize: 10.5, color: "var(--tx-l3)", fontWeight: 700, textTransform: "uppercase" }}>Civil Specialization & Equipment Capacity</div>
+                <div style={{ fontSize: 13, color: "var(--tx-l)", marginTop: 2 }}>{inspectingApp.specialization || "General Road & Pothole Restoration"}</div>
+              </div>
+
+              {inspectingApp.rejection_reason && (
+                <div style={{ padding: "12px 14px", borderRadius: 8, background: "rgba(192,82,42,0.12)", border: "1px solid rgba(192,82,42,0.28)", fontSize: 12.5, color: "#e8835c" }}>
+                  <strong>Administrative Rejection Reason:</strong> {inspectingApp.rejection_reason}
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button className="btn btn-ghost" onClick={() => setInspectingApp(null)}>Close</button>
+              {inspectingApp.approval_status !== "approved" && (
+                <button
+                  className="btn btn-gold"
+                  onClick={() => {
+                    handleApprove(inspectingApp);
+                  }}
+                  disabled={actionLoading}
+                >
+                  ✓ Approve & Activate Account
+                </button>
+              )}
+              {inspectingApp.approval_status === "pending" && (
+                <button
+                  className="btn btn-ghost"
+                  style={{ color: "#e8835c", borderColor: "rgba(192,82,42,0.3)" }}
+                  onClick={() => {
+                    setRejectingApp(inspectingApp);
+                    setRejectionReason("");
+                  }}
+                  disabled={actionLoading}
+                >
+                  ✕ Reject Application
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: Reject Contractor Application with Reason */}
+      {rejectingApp && (
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1100,
+            background: "rgba(3, 6, 14, 0.92)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setRejectingApp(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 520,
+              background: "linear-gradient(165deg, #171c2b 0%, #0e121d 100%)",
+              border: "1px solid rgba(192,82,42,0.4)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.92)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div className="heading" style={{ fontSize: 18, fontWeight: 700, color: "#e8835c" }}>
+                Reject Contractor Application
+              </div>
+              <button onClick={() => setRejectingApp(null)} style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--tx-l)", cursor: "pointer" }}>✕</button>
+            </div>
+
+            <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ fontSize: 13, color: "var(--tx-l2)", lineHeight: 1.5 }}>
+                You are rejecting the contractor registration for <strong style={{ color: "var(--tx-l)" }}>{rejectingApp.name}</strong> ({rejectingApp.email}). Access to the contractor portal will remain disabled.
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: "var(--tx-l3)", marginBottom: 6, display: "block" }}>
+                  Administrative Rejection Reason *
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Incomplete municipal license documents, lack of requisite road roller equipment, or jurisdiction mismatch."
+                  value={rejectionReason}
+                  onChange={e => setRejectionReason(e.target.value)}
+                  style={{ width: "100%", padding: "10px 14px", borderRadius: 8, background: "#161d2f", border: "1px solid rgba(255,255,255,0.12)", color: "var(--tx-l)", fontSize: 13, resize: "vertical" }}
+                />
+              </div>
+
+              <div style={{ fontSize: 11.5, color: "var(--tx-l3)" }}>
+                ℹ️ This reason will be stored in the municipal audit log and displayed to the applicant upon login.
+              </div>
+            </div>
+
+            <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button className="btn btn-ghost" onClick={() => setRejectingApp(null)}>Cancel</button>
+              <button
+                className="btn btn-gold"
+                style={{ background: "#c0522a", borderColor: "#c0522a", color: "#fff" }}
+                onClick={handleReject}
+                disabled={actionLoading || !rejectionReason.trim()}
+              >
+                {actionLoading ? "Rejecting…" : "Confirm Rejection"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Profile Modal (View-Only for Admin Oversight) */}
+      {viewingContractor && (
+        <div
+          className="modal-ov"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(3, 6, 14, 0.88)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={e => e.target === e.currentTarget && setViewingContractor(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 580,
+              background: "linear-gradient(165deg, #131929 0%, #0d121d 100%)",
+              border: "1px solid rgba(201,168,76,0.35)",
+              borderRadius: 16,
+              boxShadow: "0 35px 90px rgba(0,0,0,0.92)",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: "20px 24px",
+                background: "rgba(255,255,255,0.02)",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 10,
+                    background: "rgba(201,168,76,0.15)",
+                    border: "1px solid rgba(201,168,76,0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    color: "var(--gold2)",
+                  }}
+                >
+                  ◈
+                </div>
+                <div>
+                  <div className="heading" style={{ fontSize: 18, fontWeight: 700, color: "var(--tx-l)" }}>
+                    Contractor Dossier
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--tx-l3)", marginTop: 2 }}>
+                    Official Municipal Record · View-Only Oversight
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingContractor(null)}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 8,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "var(--tx-l)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: "22px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Company Banner */}
+              <div style={{ padding: "16px 20px", borderRadius: 12, background: "#161d2f", border: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "var(--tx-l)" }}>{viewingContractor.name}</div>
+                  <div style={{ fontSize: 12, color: "var(--gold2)", fontFamily: "monospace", marginTop: 2 }}>ID: {viewingContractor.id}</div>
+                </div>
+                <span className={`badge ${viewingContractor.active !== false ? "b-done" : "b-reject"}`}>
+                  {viewingContractor.active !== false ? "Active Contractor" : "Suspended"}
+                </span>
+              </div>
+
+              {/* Information Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ color: "var(--tx-l3)", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>Contact Person</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--tx-l)", marginTop: 4 }}>👤 {viewingContractor.contactPerson || "Lead Engineer"}</div>
+                </div>
+                <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ color: "var(--tx-l3)", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>Contact Phone</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--tx-l)", marginTop: 4 }}>📱 {viewingContractor.phone}</div>
+                </div>
+                <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ color: "var(--tx-l3)", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>Email Address</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--tx-l)", marginTop: 4 }}>✉️ {viewingContractor.email}</div>
+                </div>
+                <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ color: "var(--tx-l3)", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>Registration Date</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--tx-l)", marginTop: 4 }}>📅 {viewingContractor.createdAt || "15 Dec 2025"}</div>
+                </div>
+              </div>
+
+              {/* Operating Location */}
+              <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ color: "var(--tx-l3)", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>Operating Zone & Coverage</div>
+                <div style={{ fontSize: 13.5, color: "var(--tx-l)", marginTop: 4 }}>📍 {viewingContractor.serviceArea || "East Zone (Koramangala, Indiranagar, HSR Layout)"}</div>
+              </div>
+
+              {/* Technical Specialization */}
+              <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ color: "var(--tx-l3)", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>Technical Specialization & Civil Focus</div>
+                <div style={{ fontSize: 13.5, color: "var(--tx-l)", marginTop: 4 }}>🛠️ {viewingContractor.specialization || "Bituminous Pavements & Emergency Surface Restoration"}</div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{ padding: "16px 24px", background: "rgba(10,14,24,0.9)", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "flex-end" }}>
+              <button className="btn btn-ghost" onClick={() => setViewingContractor(null)}>Close Dossier</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* View Profile Modal (View-Only for Admin Oversight) */}
       {viewingContractor && (
@@ -6160,37 +7102,113 @@ export default function App() {
     }
   }, []);
 
+  // Broadcast helper for real-time multi-tab & multi-window synchronization
+  const broadcastSync = (data, message) => {
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        const bc = new BroadcastChannel("smartroad_live_sync");
+        bc.postMessage({ type: "SYNC_APPDATA", payload: data, message });
+        bc.close();
+      }
+    } catch {}
+  };
+
+  // Listen for real-time live updates across all open tabs & windows
+  useEffect(() => {
+    let bc;
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        bc = new BroadcastChannel("smartroad_live_sync");
+        bc.onmessage = (e) => {
+          if (e.data && e.data.type === "SYNC_APPDATA" && e.data.payload) {
+            setAppData(e.data.payload);
+            if (e.data.message) {
+              setToast({ msg: `⚡ Live Sync: ${e.data.message}`, type: "info", id: Date.now() });
+            }
+          }
+        };
+      }
+    } catch {}
+
+    const handleStorage = (e) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed && parsed.complaints) {
+            setAppData(parsed);
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      if (bc) bc.close();
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch {}
   }, [appData]);
 
   const showToast = (msg, type = "info") => setToast({ msg, type, id: Date.now() });
 
-  const addComplaint = (c, log) => setAppData(d => ({
-    ...d,
-    complaints: [...d.complaints, c],
-    auditLogs: [...d.auditLogs, { id: Date.now(), actor: log.actor, action: log.action, type: log.type, time: ts(), flag: false }],
-  }));
+  const addComplaint = (c, log) => {
+    setAppData(d => {
+      const next = {
+        ...d,
+        complaints: [...d.complaints, c],
+        auditLogs: [...d.auditLogs, { id: Date.now(), actor: log.actor, action: log.action, type: log.type, time: ts(), flag: false }],
+      };
+      broadcastSync(next, `New complaint ${c.id} filed`);
+      return next;
+    });
+  };
 
-  const updateComplaint = (id, updates, log) => setAppData(d => ({
-    ...d,
-    complaints: d.complaints.map(c => c.id === id ? { ...c, ...updates } : c),
-    auditLogs: [...d.auditLogs, { id: Date.now(), actor: log.actor, action: log.action, type: log.type, time: ts(), flag: !!log.flag }],
-  }));
+  const updateComplaint = (id, updates, log) => {
+    setAppData(d => {
+      const next = {
+        ...d,
+        complaints: d.complaints.map(c => c.id === id ? { ...c, ...updates } : c),
+        auditLogs: [...d.auditLogs, { id: Date.now(), actor: log.actor, action: log.action, type: log.type, time: ts(), flag: !!log.flag }],
+      };
+      broadcastSync(next, `Complaint ${id} updated (${log.action || updates.status || "modified"})`);
+      return next;
+    });
+  };
 
-  const addContractor = (contractor, log) => setAppData(d => ({
-    ...d,
-    contractors: [...d.contractors, contractor],
-    auditLogs: [...d.auditLogs, { id: Date.now(), actor: log.actor || "Admin", action: log.action || `Added contractor ${contractor.name}`, type: "contractor", time: ts(), flag: false }],
-  }));
+  const addContractor = (contractor, log) => {
+    setAppData(d => {
+      const next = {
+        ...d,
+        contractors: [...d.contractors, contractor],
+        auditLogs: [...d.auditLogs, { id: Date.now(), actor: log.actor || "Admin", action: log.action || `Added contractor ${contractor.name}`, type: "contractor", time: ts(), flag: false }],
+      };
+      broadcastSync(next, `Contractor ${contractor.name} added`);
+      return next;
+    });
+  };
 
-  const updateContractor = (updatedContractor, log) => setAppData(d => ({
-    ...d,
-    contractors: d.contractors.map(c => c.id === updatedContractor.id ? { ...c, ...updatedContractor } : c),
-    auditLogs: [...d.auditLogs, { id: Date.now(), actor: log.actor || "Admin", action: log.action || `Updated contractor ${updatedContractor.name}`, type: "contractor", time: ts(), flag: false }],
-  }));
+  const updateContractor = (updatedContractor, log) => {
+    setAppData(d => {
+      const next = {
+        ...d,
+        contractors: d.contractors.map(c => c.id === updatedContractor.id ? { ...c, ...updatedContractor } : c),
+        auditLogs: [...d.auditLogs, { id: Date.now(), actor: log.actor || "Admin", action: log.action || `Updated contractor ${updatedContractor.name}`, type: "contractor", time: ts(), flag: false }],
+      };
+      broadcastSync(next, `Contractor ${updatedContractor.name} updated`);
+      return next;
+    });
+  };
 
-  const updateBudget = (config) => setAppData(d => ({ ...d, budgetConfig: { ...d.budgetConfig, ...config } }));
+  const updateBudget = (config) => {
+    setAppData(d => {
+      const next = { ...d, budgetConfig: { ...d.budgetConfig, ...config } };
+      broadcastSync(next, "Municipal budget rates updated");
+      return next;
+    });
+  };
 
   const handleLogin = (r, u) => { setRole(r); setCurrentUser(u); setAuthed(true); setPage("dashboard"); };
   const handleLogout = () => { setAuthed(false); setCurrentUser(null); setPage("dashboard"); setView("landing"); };
@@ -6302,6 +7320,14 @@ export default function App() {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             initialRole={authRole}
+            contractors={appData.contractors || []}
+            onContractorRegistered={(newContractor) => {
+              addContractor(newContractor, {
+                actor: newContractor.name,
+                action: `Submitted contractor registration application (${newContractor.id})`,
+                type: "contractor_register"
+              });
+            }}
           />
         )
       ) : (
